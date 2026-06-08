@@ -65,8 +65,16 @@ def test_q13_baja_logica(client):
     r = client.delete("/propietarios/CTEST3")
     assert r.status_code == 200
 
-def test_q13_alta_duplicada_falla(client):
-    # C001 ya existe en el seed
-    r = client.post("/propietarios", json={"id_propietario": "C001",
-        "nombre": "Dup", "apellido": "Dup", "dni": "30456789"})
-    assert r.status_code in (409, 422)
+def test_q13_alta_duplicada_da_409(client):
+    # C001 ya existe en el seed; con cuerpo válido debe fallar por duplicado
+    r = client.post("/propietarios", json={
+        "id_propietario": "C001", "nombre": "Dup", "apellido": "Dup",
+        "dni": "30456789", "email": "dup@test.com", "telefono": "1100000000",
+        "ciudad": "CABA", "provincia": "Buenos Aires",
+    })
+    assert r.status_code == 409
+
+def test_q13_alta_incompleta_da_422(client):
+    # faltan campos requeridos → validación Pydantic
+    r = client.post("/propietarios", json={"id_propietario": "CINCOMPLETO"})
+    assert r.status_code == 422

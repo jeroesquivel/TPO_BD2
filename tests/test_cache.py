@@ -1,6 +1,13 @@
+import redis
+
+
 # helpers
 def cache_keys(redis) -> set:
     return set(redis.keys("cache:*"))
+
+
+def _redis_caido(*_a, **_k):
+    raise redis.exceptions.ConnectionError("redis caído (simulado)")
 
 
 # --- cache miss → hit ---
@@ -131,3 +138,25 @@ def test_post_consulta_no_invalida_q01(client, redis):
     })
 
     assert any(k.startswith("cache:q01") for k in cache_keys(redis))
+
+
+# --- caché tolerante a fallos: si Redis cae, la API sigue contra Mongo ---
+
+def test_lectura_degrada_a_mongo_si_redis_cae(client, monkeypatch):
+    monkeypatch.setattr("src.db.cache.get_redis", _redis_caido)
+    r = client.get("/pacientes/activos")
+    assert r.status_code == 200
+    assert len(r.json()) == 17   # mismos datos que servidos con caché
+
+def test_escritura_no_falla_si_redis_cae(client, monkeypatch):
+    # La consulta commitea en Mongo; invalidar es best-effort y no debe tumbar la
+    # request (si lo hiciera, un retry duplicaría la consulta).
+    monkeypatch.setattr("src.db.cache.get_redis", _redis_caido)
+    r = client.post("/consultas", json={
+        "id_paciente": "P001", "id_vet": "V001",
+        "fecha": "2026-06-08", "motivo": "Test redis caído",
+        "diagnostico": "Sano", "costo": 1000, "estado": "Cerrada",
+    })
+    assert r.status_code == 200
+    assert r.json()["id_consulta"].startswith("CON")
+    # la consulta insertada la limpia el fixture autouse `restaura_db`

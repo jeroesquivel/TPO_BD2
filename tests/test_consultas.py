@@ -147,3 +147,8 @@ def test_q14_vet_inexistente_da_404(client):
         "diagnostico": "Sano", "costo": 1000, "estado": "Cerrada",
     })
     assert r.status_code == 404
+
+def test_q14_cuerpo_incompleto_da_422(client):
+    # faltan campos requeridos → validación Pydantic (antes era 500)
+    r = client.post("/consultas", json={"id_paciente": "P001"})
+    assert r.status_code == 422

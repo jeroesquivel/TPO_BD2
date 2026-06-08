@@ -38,16 +38,16 @@ def test_q15_decremento_exitoso(client):
     assert r.status_code == 200
     body = r.json()
     assert body["unidades_antes"] - body["unidades_despues"] == 1
-    # restaurar
-    client.post("/stock/PRD005/decrementar", json={"cantidad": -1})   # o directo a DB
+    # las unidades las restaura el fixture autouse `restaura_db`
 
 def test_q15_stock_insuficiente_da_409(client):
     r = client.post("/stock/PRD016/decrementar", json={"cantidad": 99999})
     assert r.status_code == 409
 
-def test_q15_cantidad_negativa_da_409(client):
+def test_q15_cantidad_negativa_da_422(client):
+    # Pydantic (cantidad > 0) rechaza el cuerpo antes de llegar al servicio
     r = client.post("/stock/PRD001/decrementar", json={"cantidad": -5})
-    assert r.status_code == 409
+    assert r.status_code == 422
 
 def test_q15_producto_inexistente_da_409(client):
     r = client.post("/stock/PRDXXX/decrementar", json={"cantidad": 1})
@@ -61,3 +61,12 @@ def test_q15_atomico_no_queda_negativo(client):
     r2 = client.get("/stock/bajo")
     prd016 = next(p for p in r2.json() if p["id_producto"] == "PRD016")
     assert prd016["unidades"] == 20
+
+def test_q15_sin_cantidad_da_422(client):
+    # cuerpo sin `cantidad` → validación Pydantic (antes era un KeyError → 500)
+    r = client.post("/stock/PRD005/decrementar", json={})
+    assert r.status_code == 422
+
+def test_q15_cantidad_cero_da_422(client):
+    r = client.post("/stock/PRD005/decrementar", json={"cantidad": 0})
+    assert r.status_code == 422

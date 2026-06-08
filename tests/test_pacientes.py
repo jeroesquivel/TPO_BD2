@@ -25,12 +25,17 @@ def test_q01_incluye_datos_propietario(client):
 
 # --- q03 ---
 
-def test_q03_historial_p001_tiene_cinco_eventos(client):
+def test_q03_historial_p001_literal_consultas_y_vacunaciones(client):
     r = client.get("/pacientes/P001/historial")
     assert r.status_code == 200
     eventos = r.json()
-    # 4 consultas + 2 vacunaciones + 1 cirugía (el historial une las tres colecciones)
-    assert len(eventos) == 7
+    # enunciado §4 #3: SOLO consultas + vacunaciones (4 + 2 = 6), sin cirugías
+    assert len(eventos) == 6
+
+def test_q03_historial_no_incluye_cirugias(client):
+    r = client.get("/pacientes/P001/historial")
+    tipos = {e["tipo"] for e in r.json()}
+    assert "Cirugía" not in tipos
 
 def test_q03_historial_ordenado_por_fecha(client):
     r = client.get("/pacientes/P001/historial")
@@ -47,6 +52,17 @@ def test_q03_paciente_inexistente_devuelve_lista_vacia(client):
     r = client.get("/pacientes/PXXX/historial")
     assert r.status_code == 200
     assert r.json() == []
+
+
+# --- q03 variante extendida (extra, fuera del enunciado) ---
+
+def test_q03_completo_p001_suma_la_cirugia(client):
+    r = client.get("/pacientes/P001/historial-completo")
+    assert r.status_code == 200
+    eventos = r.json()
+    # 4 consultas + 2 vacunaciones + 1 cirugía = 7
+    assert len(eventos) == 7
+    assert "Cirugía" in {e["tipo"] for e in eventos}
 
 
 # --- q06 ---
