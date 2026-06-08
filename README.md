@@ -66,7 +66,8 @@ docker compose run --rm etl
 | Método | Ruta | Consulta | Descripción |
 |--------|------|----------|-------------|
 | `GET`  | `/pacientes/activos`                  | q01 | Pacientes activos con datos del propietario |
-| `GET`  | `/pacientes/{id}/historial`           | q03 | Historial (consultas + vacunaciones + cirugías) |
+| `GET`  | `/pacientes/{id}/historial`           | q03 | Historial (consultas + vacunaciones) |
+| `GET`  | `/pacientes/{id}/historial-completo`  | —   | Extra (fuera del enunciado): historial + cirugías |
 | `GET`  | `/pacientes/vacunas-vencidas`         | q06 | Pacientes con vacunas vencidas |
 | `GET`  | `/pacientes/por-sucursal?sucursal=`   | q10 | Pacientes de una sucursal |
 | `GET`  | `/propietarios/multi-paciente`        | q04 | Propietarios con más de un paciente |
@@ -237,7 +238,7 @@ lectura transversal a todas ellas.
 |----|---------------------------------------------------------------|----------|
 | 1  | Pacientes activos con todos sus datos de propietario          | lectura  |
 | 2  | Consultas en 'Seguimiento' con veterinario y costo            | lectura  |
-| 3  | Historial completo de un paciente (consultas + vacunaciones + cirugías) | lectura |
+| 3  | Historial de un paciente (consultas + vacunaciones) ordenado por fecha | lectura |
 | 4  | Propietarios con más de un paciente                           | lectura  |
 | 5  | Veterinarios activos y consultas en los últimos 60 días       | lectura  |
 | 6  | Pacientes con vacunas vencidas                                | lectura  |

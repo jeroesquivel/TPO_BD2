@@ -17,6 +17,11 @@ def get_historial(id_paciente: str):
                             lambda: q03.historial_paciente(id_paciente))
 
 
+def get_historial_completo(id_paciente: str):
+    return get_or_set_cache(cache_key("q03_completo", id_paciente), TTL_DEFAULT,
+                            lambda: q03.historial_completo(id_paciente))
+
+
 def get_vacunas_vencidas():
     return get_or_set_cache(cache_key("q06"), TTL_DEFAULT,
                             lambda: q06.vacunas_vencidas(None))

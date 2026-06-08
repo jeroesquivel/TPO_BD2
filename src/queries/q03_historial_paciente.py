@@ -1,9 +1,11 @@
-"""Consulta 3 — Historial completo de un paciente: consultas, vacunaciones y
-cirugías ordenadas por fecha.
+"""Consulta 3 — Historial completo de un paciente: consultas y vacunaciones
+ordenadas por fecha (enunciado §4 #3).
 
-Motor: MongoDB. Técnica: dos `$unionWith` (vacunaciones + cirugías) + `$sort`
-por fecha. Se unifican las tres colecciones en una única línea de tiempo,
-normalizando el campo de fecha.
+Motor: MongoDB. Técnica: `$unionWith` (vacunaciones) + `$sort` por fecha. Se unifican
+las colecciones en una única línea de tiempo, normalizando el campo de fecha.
+
+`historial_completo` es una **variante extendida** (fuera del enunciado) que además
+suma las cirugías; sirve para dar visibilidad a esa colección.
 """
 
 from __future__ import annotations
@@ -11,53 +13,75 @@ from __future__ import annotations
 from src.db.mongo import get_db
 from src.queries._util import print_result
 
+# Eventos de consulta (raíz del pipeline) y de vacunación (unión), normalizados a
+# una línea de tiempo común. Las cirugías quedan aparte (ver historial_completo).
+_PROJ_CONSULTA = {
+    "_id": 0,
+    "tipo": {"$literal": "Consulta"},
+    "fecha": "$fecha",
+    "detalle": "$motivo",
+    "diagnostico": "$diagnostico",
+    "id_vet": "$id_vet",
+}
 
-def historial_paciente(id_paciente: str) -> list[dict]:
-    """Devuelve la línea de tiempo (consultas + vacunaciones) de un paciente."""
-    db = get_db()
-    pipeline = [
-        {"$match": {"id_paciente": id_paciente}},
+_UNION_VACUNACIONES = {
+    "coll": "vacunaciones",
+    "pipeline": [
         {"$project": {
             "_id": 0,
-            "tipo": {"$literal": "Consulta"},
-            "fecha": "$fecha",
-            "detalle": "$motivo",
-            "diagnostico": "$diagnostico",
+            "tipo": {"$literal": "Vacunación"},
+            "fecha": "$fecha_aplicacion",
+            "detalle": "$nombre_vacuna",
+            "diagnostico": {"$literal": None},
             "id_vet": "$id_vet",
         }},
-        {"$unionWith": {
-            "coll": "vacunaciones",
-            "pipeline": [
-                {"$match": {"id_paciente": id_paciente}},
-                {"$project": {
-                    "_id": 0,
-                    "tipo": {"$literal": "Vacunación"},
-                    "fecha": "$fecha_aplicacion",
-                    "detalle": "$nombre_vacuna",
-                    "diagnostico": {"$literal": None},
-                    "id_vet": "$id_vet",
-                }},
-            ],
+    ],
+}
+
+_UNION_CIRUGIAS = {
+    "coll": "cirugias",
+    "pipeline": [
+        {"$project": {
+            "_id": 0,
+            "tipo": {"$literal": "Cirugía"},
+            "fecha": "$fecha",
+            "detalle": "$tipo",
+            "diagnostico": "$resultado",
+            "id_vet": "$id_vet",
         }},
-        {"$unionWith": {
-            "coll": "cirugias",
-            "pipeline": [
-                {"$match": {"id_paciente": id_paciente}},
-                {"$project": {
-                    "_id": 0,
-                    "tipo": {"$literal": "Cirugía"},
-                    "fecha": "$fecha",
-                    "detalle": "$tipo",
-                    "diagnostico": "$resultado",
-                    "id_vet": "$id_vet",
-                }},
-            ],
-        }},
-        {"$sort": {"fecha": 1}},
+    ],
+}
+
+
+def _historial(id_paciente: str, incluir_cirugias: bool) -> list[dict]:
+    db = get_db()
+    union_vac = {**_UNION_VACUNACIONES}
+    union_vac["pipeline"] = [{"$match": {"id_paciente": id_paciente}}, *union_vac["pipeline"]]
+    pipeline = [
+        {"$match": {"id_paciente": id_paciente}},
+        {"$project": _PROJ_CONSULTA},
+        {"$unionWith": union_vac},
     ]
+    if incluir_cirugias:
+        union_cir = {**_UNION_CIRUGIAS}
+        union_cir["pipeline"] = [{"$match": {"id_paciente": id_paciente}}, *union_cir["pipeline"]]
+        pipeline.append({"$unionWith": union_cir})
+    pipeline.append({"$sort": {"fecha": 1}})
     return list(db.consultas.aggregate(pipeline))
+
+
+def historial_paciente(id_paciente: str) -> list[dict]:
+    """Línea de tiempo del paciente: consultas + vacunaciones (enunciado §4 #3)."""
+    return _historial(id_paciente, incluir_cirugias=False)
+
+
+def historial_completo(id_paciente: str) -> list[dict]:
+    """Variante extendida: historial + cirugías (extra, fuera del enunciado §4 #3)."""
+    return _historial(id_paciente, incluir_cirugias=True)
 
 
 if __name__ == "__main__":  # pragma: no cover
     print_result("Consulta 3 - Historial del paciente P001",
                  historial_paciente("P001"))
+    print_result("Consulta 3 (extendida) - Historial completo de P001",
+                 historial_completo("P001"))

@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
 
+from src.api.models import ConsultaIn
 from src.api.services import consultas_service
 
 router = APIRouter(prefix="/consultas", tags=["consultas"])
@@ -31,5 +32,6 @@ def r11():
 
 
 @router.post("")
-def c14(c: dict = Body(...)):
-    return consultas_service.registrar_consulta(c)
+def c14(c: ConsultaIn):
+    # exclude_none deja que q14 aplique sus defaults (fecha=now, id autogenerado)
+    return consultas_service.registrar_consulta(c.model_dump(exclude_none=True))
