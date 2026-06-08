@@ -135,17 +135,16 @@ CIRUGIAS = [
 # y con más, y algunos con vencimiento cercano.
 STOCK = [
     # id_producto, nombre, categoria, unidades, precio_unit, vencimiento, proveedor
-    ("PRD007", "Dexametasona 4mg", "Antiinflamatorio", 30, 1500, "2026-06-20", "BioVet SRL"),
-    ("PRD008", "Carprofeno 75mg", "Antiinflamatorio", 18, 2100, "2026-07-05", "VetFarma SA"),
-    ("PRD009", "Enrofloxacina 50mg", "Antibiótico", 45, 1800, "2026-08-10", "MediAnimal"),
-    ("PRD010", "Gabapentina 100mg", "Analgésico", 12, 2600, "2026-06-15", "BioVet SRL"),
-    ("PRD011", "Praziquantel", "Antiparasitario", 70, 900, "2027-03-01", "VetFarma SA"),
-    ("PRD012", "Vacuna Quíntuple", "Biológico", 150, 4200, "2026-11-01", "MediAnimal"),
-    ("PRD013", "Omeprazol 10mg", "Gastroprotector", 22, 1300, "2026-06-10", "BioVet SRL"),
-    ("PRD014", "Cefalexina 500mg", "Antibiótico", 90, 1100, "2026-10-20", "VetFarma SA"),
-    ("PRD015", "Tramadol 50mg", "Analgésico", 8, 3100, "2026-09-01", "MediAnimal"),
-    ("PRD016", "Suero Ringer 500ml", "Solución", 130, 600, "2027-02-01", "BioVet SRL"),
-    ("PRD017", "Apoquel 16mg", "Dermatológico", 35, 5400, "2026-12-15", "MediAnimal"),
+    ("PRD007", "Amoxicilina 500mg",  "Antibiótico",      95,  1200, "2026-08-15", "VetFarma SA"),
+    ("PRD008", "Dexametasona 4mg",   "Antiinflamatorio", 70,  980,  "2026-07-20", "BioVet SRL"),
+    ("PRD009", "Tramadol 50mg",      "Analgésico",       45,  2100, "2027-01-05", "MediAnimal"),
+    ("PRD010", "Metronidazol 250mg", "Antibiótico",      110, 750,  "2026-09-30", "VetFarma SA"),
+    ("PRD011", "Prednisolona 5mg",   "Corticoide",       30,  1350, "2026-06-25", "BioVet SRL"),
+    ("PRD012", "Enrofloxacina 50mg", "Antibiótico",      80,  1600, "2027-03-10", "MediAnimal"),
+    ("PRD013", "Suero glucosado 5%", "Solución",         150, 350,  "2026-11-01", "VetFarma SA"),
+    ("PRD014", "Vitamina B12 inj.",  "Suplemento",       40,  890,  "2026-10-20", "BioVet SRL"),
+    ("PRD015", "Omeprazol 20mg",     "Gastroprotector",  60,  1100, "2027-02-28", "MediAnimal"),
+    ("PRD016", "Furosemida 40mg",    "Diurético",        20,  1450, "2026-07-15", "VetFarma SA"),
 ]
 
 
