@@ -1,3 +1,18 @@
+# Config común a los servicios Python (app, etl, tests). Se reusa con anclas YAML.
+x-app-base: &app-base
+  build: .
+  image: vetsalud:local
+  depends_on:
+    mongo:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  environment: &app-env
+    MONGO_URI: mongodb://mongo:27017
+    MONGO_DB: vetsalud
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+
 services:
   mongo:
     image: mongo:7
@@ -5,7 +20,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - mongo_data:/data/db          # estado persistente: sobrevive a `down` (no a `down -v`)
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -15,6 +30,7 @@ services:
   redis:
     image: redis:7
     container_name: vetsalud_redis
+    command: ["redis-server", "--appendonly", "yes"]   # persistencia AOF
     ports:
       - "6379:6379"
     volumes:
@@ -25,13 +41,31 @@ services:
       timeout: 5s
       retries: 5
 
+  # API REST. Arranca cuando Mongo y Redis están healthy. NO carga datos:
+  # usa lo que ya haya en el volumen (ver servicio `etl` para cargar/recargar).
   app:
-    build: .
-    ports: ["8000:8000"]
-    depends_on: [mongo, redis]
+    <<: *app-base
+    container_name: vetsalud_app
+    ports:
+      - "8000:8000"
+
+  # ETL a demanda: carga limpia + seed (drop=True). Perfil `etl` => no corre solo.
+  #   docker compose run --rm etl
+  etl:
+    <<: *app-base
+    profiles: ["etl"]
+    command: ["python", "-m", "src.main"]
+
+  # Tests en BD aislada (vetsalud_test): NO pisa tus datos de `vetsalud`.
+  # Carga su propio dataset y corre pytest. Perfil `test` => no corre solo.
+  #   docker compose run --rm tests
+  tests:
+    <<: *app-base
+    profiles: ["test"]
     environment:
-      MONGO_URI: mongodb://mongo:27017
-      REDIS_HOST: redis
+      <<: *app-env
+      MONGO_DB: vetsalud_test
+    command: ["sh", "-c", "python -m src.main && python -m pytest -q"]
 
 volumes:
   mongo_data:

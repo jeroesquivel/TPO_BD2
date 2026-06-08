@@ -1,0 +1,12 @@
+.venv/
+.git/
+.gitignore
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.claude/
+docs/
+informe/
+*.md
+LICENSE
+.env
