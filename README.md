@@ -21,19 +21,17 @@ mutan datos), expuestos como **API REST** (FastAPI) con separación de capas
 ## Requisitos
 
 - [Docker](https://www.docker.com/) y Docker Compose.
-- Python **3.11+**.
+
+Nada más: todo (API, ETL y tests) corre dentro de contenedores, así que no hace
+falta instalar Python ni dependencias en tu máquina.
 
 ---
 
 ## Cómo correr el proyecto
 
-
-
----
-
-### Docker Compose 
-
-El `docker-compose.yml` define cuatro servicios: `mongo` y `redis` (infra
+El proyecto se corre **íntegramente con Docker Compose**: no necesitás instalar
+Python ni las dependencias en tu máquina (sólo Docker). El `docker-compose.yml`
+define cuatro servicios: `mongo` y `redis` (infra
 **persistente**), `app` (la API) y dos servicios *a demanda* protegidos por
 *profiles* — `etl` (carga/recarga de datos) y `tests`. `app` espera a que Mongo y
 Redis estén *healthy* antes de arrancar y **no** carga datos por sí solo: usa lo que
@@ -182,13 +180,11 @@ curl -i -X POST localhost:8000/consultas \
 ```
 
 > Tras correr las escrituras, podés resetear los datos con
-> `docker compose run --rm etl` (o `python -m src.main` en local).
+> `docker compose run --rm etl`.
 
 ---
 
 ## Ejecutar los tests
-
-**Por Docker (recomendado, BD aislada):**
 
 ```bash
 docker compose run --rm tests
@@ -197,9 +193,6 @@ docker compose run --rm tests
 Corre la suite en una **base de datos aislada** (`MONGO_DB=vetsalud_test`): siembra
 su propio dataset y ejecuta `pytest`, **sin tocar** tus datos de `vetsalud`. (Redis
 es sólo caché y se limpia entre pruebas.)
-
-**Local:** con la infraestructura levantada **y el ETL ejecutado** (Opción B, pasos
-1 y 4):
 
 ---
 
