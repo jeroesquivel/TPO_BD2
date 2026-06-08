@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body
+
 from src.api.services import consultas_service
 
 router = APIRouter(prefix="/consultas", tags=["consultas"])

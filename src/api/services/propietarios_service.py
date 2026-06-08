@@ -12,7 +12,6 @@ def get_propietarios_multipaciente():
 
 
 def get_propietarios_sin_consultas():
-    # None → datetime.now() en tiempo real
     return get_or_set_cache(cache_key("q12"), TTL_DEFAULT,
                             lambda: q12.propietarios_sin_consultas_ultimo_anio(None))
 

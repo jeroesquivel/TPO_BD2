@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from src.api.services import pacientes_service
 
 router = APIRouter(prefix="/pacientes", tags=["pacientes"])

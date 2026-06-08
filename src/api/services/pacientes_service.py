@@ -18,7 +18,6 @@ def get_historial(id_paciente: str):
 
 
 def get_vacunas_vencidas():
-    # None → datetime.now() en tiempo real
     return get_or_set_cache(cache_key("q06"), TTL_DEFAULT,
                             lambda: q06.vacunas_vencidas(None))
 

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body
+
 from src.api.services import propietarios_service
 
 router = APIRouter(prefix="/propietarios", tags=["propietarios"])

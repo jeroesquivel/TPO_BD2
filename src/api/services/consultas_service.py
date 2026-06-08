@@ -15,7 +15,6 @@ def get_consultas_seguimiento():
 
 
 def get_vets_activos():
-    # None → datetime.now() en tiempo real
     return get_or_set_cache(cache_key("q05"), TTL_DEFAULT,
                             lambda: q05.vets_activos_consultas_ultimos_60_dias(None))
 
@@ -31,7 +30,6 @@ def get_control_bajo_costo(umbral: float = 5000):
 
 
 def get_ingresos_por_vet():
-    # None → datetime.now() en tiempo real
     return get_or_set_cache(cache_key("q11"), TTL_DEFAULT,
                             lambda: q11.ingresos_por_vet_mes_actual(None))
 
