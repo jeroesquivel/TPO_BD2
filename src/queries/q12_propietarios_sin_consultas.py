@@ -1,8 +1,13 @@
 """Consulta 12 — Propietarios sin consultas registradas en el último año.
 
-Motor: MongoDB. Técnica: `$lookup` propietarios → pacientes → consultas (con
-`match` por fecha `>= hoy-365d`) y se filtran los propietarios cuyo resultado de
-consultas recientes queda vacío. El corte de un año se calcula dinámicamente.
+Motor: MongoDB. Técnica: **un solo** `$lookup` correlacionado de `propietarios`
+a `consultas` por `id_propietario` (campo desnormalizado), con filtro de fecha.
+Elimina la cadena doble propietarios → pacientes → consultas.
+
+Supuesto: `id_propietario` en cada consulta es un snapshot del dueño al momento
+de la atención. Un cambio de dueño posterior no afecta el historial registrado.
+El caso borde "propietario con 0 pacientes" se incluye correctamente (sin
+consultas → aparece en el resultado).
 """
 
 from __future__ import annotations
@@ -19,22 +24,12 @@ def propietarios_sin_consultas_ultimo_anio(referencia: datetime | None = None) -
     corte = (referencia or datetime.now()) - timedelta(days=365)
     pipeline = [
         {"$lookup": {
-            "from": "pacientes",
-            "localField": "id_propietario",
-            "foreignField": "id_propietario",
-            "as": "pacientes",
-        }},
-        # Por cada propietario, traer las consultas recientes de cualquiera de
-        # sus pacientes.
-        {"$lookup": {
             "from": "consultas",
-            "let": {"ids": "$pacientes.id_paciente"},
-            "pipeline": [
-                {"$match": {"$expr": {"$and": [
-                    {"$in": ["$id_paciente", "$$ids"]},
-                    {"$gte": ["$fecha", corte]},
-                ]}}},
-            ],
+            "let": {"pid": "$id_propietario"},
+            "pipeline": [{"$match": {"$expr": {"$and": [
+                {"$eq":  ["$id_propietario", "$$pid"]},
+                {"$gte": ["$fecha", corte]},
+            ]}}}],
             "as": "consultas_recientes",
         }},
         {"$match": {"consultas_recientes": {"$size": 0}}},
@@ -44,7 +39,6 @@ def propietarios_sin_consultas_ultimo_anio(referencia: datetime | None = None) -
             "propietario": {"$concat": ["$nombre", " ", "$apellido"]},
             "email": 1,
             "ciudad": 1,
-            "cantidad_pacientes": {"$size": "$pacientes"},
         }},
         {"$sort": {"id_propietario": 1}},
     ]

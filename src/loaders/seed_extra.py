@@ -155,7 +155,7 @@ def _upsert(coll, key: str, docs: list[dict]) -> int:
 
 
 def seed() -> dict[str, int]:
-    """Inserta los registros adicionales en MongoDB y Redis. Idempotente."""
+    """Inserta los registros adicionales en MongoDB. Idempotente."""
     db = get_db()
 
     propietarios = [
@@ -177,11 +177,26 @@ def seed() -> dict[str, int]:
              "especialidad", "sucursal", "activo"), row))
         for row in VETERINARIOS
     ]
+
+    counts: dict[str, int] = {}
+    counts["propietarios"] = _upsert(db.propietarios, "id_propietario", propietarios)
+    counts["veterinarios"] = _upsert(db.veterinarios, "id_vet", veterinarios)
+    counts["pacientes"] = _upsert(db.pacientes, "id_paciente", pacientes)
+
+    # Lookup dicts completos (CSV base + seed) para resolver snapshots
+    vet_by_id = {v["id_vet"]: v for v in db.veterinarios.find({}, {"_id": 0})}
+    pac_by_id = {p["id_paciente"]: p for p in db.pacientes.find({}, {"_id": 0})}
+
     consultas = [
         {
             "id_consulta": c[0], "id_paciente": c[1], "id_vet": c[2],
             "fecha": _d(c[3]), "motivo": c[4], "diagnostico": c[5],
             "costo": c[6], "estado": c[7],
+            "vet_nombre":      vet_by_id[c[2]]["nombre"],
+            "vet_apellido":    vet_by_id[c[2]]["apellido"],
+            "vet_especialidad": vet_by_id[c[2]]["especialidad"],
+            "vet_sucursal":    vet_by_id[c[2]]["sucursal"],
+            "id_propietario":  pac_by_id[c[1]]["id_propietario"],
         }
         for c in CONSULTAS
     ]
@@ -190,6 +205,10 @@ def seed() -> dict[str, int]:
             "id_vacuna": v[0], "id_paciente": v[1], "id_vet": v[2],
             "fecha_aplicacion": _d(v[3]), "nombre_vacuna": v[4],
             "proxima_dosis": _d(v[5]),
+            "vet_nombre":      vet_by_id[v[2]]["nombre"],
+            "vet_apellido":    vet_by_id[v[2]]["apellido"],
+            "vet_especialidad": vet_by_id[v[2]]["especialidad"],
+            "vet_sucursal":    vet_by_id[v[2]]["sucursal"],
         }
         for v in VACUNACIONES
     ]
@@ -201,14 +220,9 @@ def seed() -> dict[str, int]:
         for c in CIRUGIAS
     ]
 
-    counts = {
-        "propietarios": _upsert(db.propietarios, "id_propietario", propietarios),
-        "veterinarios": _upsert(db.veterinarios, "id_vet", veterinarios),
-        "pacientes": _upsert(db.pacientes, "id_paciente", pacientes),
-        "consultas": _upsert(db.consultas, "id_consulta", consultas),
-        "vacunaciones": _upsert(db.vacunaciones, "id_vacuna", vacunaciones),
-        "cirugias": _upsert(db.cirugias, "id_cirugia", cirugias),
-    }
+    counts["consultas"] = _upsert(db.consultas, "id_consulta", consultas)
+    counts["vacunaciones"] = _upsert(db.vacunaciones, "id_vacuna", vacunaciones)
+    counts["cirugias"] = _upsert(db.cirugias, "id_cirugia", cirugias)
 
     productos = [
         {

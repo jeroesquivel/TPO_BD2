@@ -85,7 +85,11 @@ def _map_paciente(row: dict) -> dict:
     }
 
 
-def _map_consulta(row: dict) -> dict:
+def _map_consulta(row: dict, vet_by_id: dict, pac_by_id: dict) -> dict:
+    vet = vet_by_id.get(clean_str(row["id_vet"]))
+    pac = pac_by_id.get(clean_str(row["id_paciente"]))
+    if vet is None or pac is None:
+        raise ValueError(f"FK inexistente en consulta {row}")
     return {
         "id_consulta": clean_str(row["id_consulta"]),
         "id_paciente": clean_str(row["id_paciente"]),
@@ -95,6 +99,11 @@ def _map_consulta(row: dict) -> dict:
         "diagnostico": clean_str(row["diagnostico"]),
         "costo": parse_number(row["costo"]),
         "estado": clean_str(row["estado"]),
+        "vet_nombre": vet["nombre"],
+        "vet_apellido": vet["apellido"],
+        "vet_especialidad": vet["especialidad"],
+        "vet_sucursal": vet["sucursal"],
+        "id_propietario": pac["id_propietario"],
     }
 
 
@@ -110,7 +119,10 @@ def _map_producto(row: dict) -> dict:
     }
 
 
-def _map_vacunacion(row: dict) -> dict:
+def _map_vacunacion(row: dict, vet_by_id: dict) -> dict:
+    vet = vet_by_id.get(clean_str(row["id_vet"]))
+    if vet is None:
+        raise ValueError(f"FK inexistente en vacunación {row}")
     return {
         "id_vacuna": clean_str(row["id_vacuna"]),
         "id_paciente": clean_str(row["id_paciente"]),
@@ -118,6 +130,10 @@ def _map_vacunacion(row: dict) -> dict:
         "fecha_aplicacion": parse_date(row["fecha_aplicacion"]),
         "nombre_vacuna": clean_str(row["nombre_vacuna"]),
         "proxima_dosis": parse_date(row["proxima_dosis"]),
+        "vet_nombre": vet["nombre"],
+        "vet_apellido": vet["apellido"],
+        "vet_especialidad": vet["especialidad"],
+        "vet_sucursal": vet["sucursal"],
     }
 
 
@@ -131,6 +147,8 @@ def _create_indexes(db) -> None:
     db.consultas.create_index([("id_paciente", ASCENDING)])
     db.consultas.create_index([("id_vet", ASCENDING)])
     db.consultas.create_index([("fecha", ASCENDING)])
+    db.consultas.create_index([("vet_sucursal", ASCENDING)])
+    db.consultas.create_index([("id_propietario", ASCENDING)])
     db.vacunaciones.create_index([("id_vacuna", ASCENDING)], unique=True)
     db.vacunaciones.create_index([("id_paciente", ASCENDING)])
     db.vacunaciones.create_index([("proxima_dosis", ASCENDING)])
@@ -158,8 +176,10 @@ def load(drop: bool = True) -> dict[str, int]:
     propietarios = [_map_propietario(r) for r in _read_csv("propietarios.csv")]
     veterinarios = [_map_veterinario(r) for r in _read_csv("veterinarios.csv")]
     pacientes = [_map_paciente(r) for r in _read_csv("pacientes.csv")]
-    consultas = [_map_consulta(r) for r in _read_csv("consultas.csv")]
-    vacunaciones = [_map_vacunacion(r) for r in _read_csv("vacunaciones.csv")]
+    vet_by_id = {v["id_vet"]: v for v in veterinarios}
+    pac_by_id = {p["id_paciente"]: p for p in pacientes}
+    consultas = [_map_consulta(r, vet_by_id, pac_by_id) for r in _read_csv("consultas.csv")]
+    vacunaciones = [_map_vacunacion(r, vet_by_id) for r in _read_csv("vacunaciones.csv")]
     stock = [_map_producto(r) for r in _read_csv("stock_farmaceutico.csv")]
 
     if propietarios:

@@ -1,7 +1,11 @@
 """Consulta 11 — Vista agregada: ingresos totales por veterinario en el mes actual.
 
 Motor: MongoDB. Técnica: `match` por el rango del mes actual + `$group` por
-`id_vet` con `$sum: "$costo"`. Los límites del mes se calculan en código.
+`id_vet` con `$sum: "$costo"`. Usa los campos desnormalizados
+`vet_nombre`/`vet_apellido`/`vet_sucursal` como `$first` en el grupo (0 lookups).
+
+Supuesto: ingresos = suma de todas las consultas del mes, independientemente
+del estado (incluye "Seguimiento").
 """
 
 from __future__ import annotations
@@ -29,21 +33,17 @@ def ingresos_por_vet_mes_actual(referencia: datetime | None = None) -> list[dict
         {"$match": {"fecha": {"$gte": inicio, "$lt": fin}}},
         {"$group": {
             "_id": "$id_vet",
-            "ingresos": {"$sum": "$costo"},
+            "vet_nombre":   {"$first": "$vet_nombre"},
+            "vet_apellido": {"$first": "$vet_apellido"},
+            "vet_sucursal": {"$first": "$vet_sucursal"},
+            "ingresos":           {"$sum": "$costo"},
             "cantidad_consultas": {"$sum": 1},
         }},
-        {"$lookup": {
-            "from": "veterinarios",
-            "localField": "_id",
-            "foreignField": "id_vet",
-            "as": "vet",
-        }},
-        {"$unwind": "$vet"},
         {"$project": {
             "_id": 0,
-            "id_vet": "$_id",
-            "veterinario": {"$concat": ["$vet.nombre", " ", "$vet.apellido"]},
-            "sucursal": "$vet.sucursal",
+            "id_vet":    "$_id",
+            "veterinario": {"$concat": ["$vet_nombre", " ", "$vet_apellido"]},
+            "sucursal":  "$vet_sucursal",
             "ingresos": 1,
             "cantidad_consultas": 1,
         }},
