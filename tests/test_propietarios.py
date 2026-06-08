@@ -1,3 +1,5 @@
+from freezegun import freeze_time
+
 from tests.conftest import REF
 
 
@@ -14,8 +16,9 @@ def test_q04_cuatro_propietarios_multipaciente(client):
 
 # --- q12 ---
 
+@freeze_time(REF)
 def test_q12_propietarios_sin_consultas_ultimo_anio(client):
-    r = client.get("/propietarios/sin-consultas", params={"referencia": REF})
+    r = client.get("/propietarios/sin-consultas")
     assert r.status_code == 200
     data = r.json()
     # C006 (P008 sin consultas), C009, C010 (P012 sin consultas),
@@ -42,8 +45,7 @@ def test_q13_alta_propietario(client):
     }
     r = client.post("/propietarios", json=nuevo)
     assert r.status_code == 200
-    # limpieza
-    client.delete("/propietarios/CTEST")
+    # los propietarios de prueba (CTEST*) los limpia el fixture autouse `restaura_db`
 
 def test_q13_modificar_propietario(client):
     nuevo = {"id_propietario": "CTEST2", "nombre": "Mod", "apellido": "Test",
@@ -53,8 +55,6 @@ def test_q13_modificar_propietario(client):
 
     r = client.put("/propietarios/CTEST2", json={"ciudad": "Córdoba"})
     assert r.status_code == 200
-
-    client.delete("/propietarios/CTEST2")
 
 def test_q13_baja_logica(client):
     nuevo = {"id_propietario": "CTEST3", "nombre": "Baja", "apellido": "Test",

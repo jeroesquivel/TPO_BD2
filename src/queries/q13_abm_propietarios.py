@@ -1,6 +1,6 @@
 """Consulta 13 — ABM completo de propietarios: alta, modificación y baja lógica.
 
-Motor: MongoDB. Técnica: `update_one(upsert=True)` con `$set` (alta idempotente),
+Motor: MongoDB. Técnica: `insert_one` (alta real, falla si el id ya existe),
 `update_one` con `$set` (modificación) y baja lógica con `{activo: False}`. Es un
 servicio que muta datos: deja el estado consistente y permite mostrar un
 antes/después.
@@ -12,16 +12,23 @@ from src.db.mongo import get_db
 from src.queries._util import print_result
 
 
-def alta_propietario(propietario: dict) -> str:
-    """Da de alta un propietario. Devuelve su `id_propietario`.
+class PropietarioDuplicadoError(ValueError):
+    """Se intentó dar de alta un `id_propietario` que ya existe."""
 
-    El propietario nace activo si no se indica lo contrario.
+
+def alta_propietario(propietario: dict) -> str:
+    """Da de alta un propietario nuevo. Devuelve su `id_propietario`.
+
+    Es un alta real (no idempotente): si el `id_propietario` ya existe lanza
+    `PropietarioDuplicadoError`. El propietario nace activo si no se indica lo
+    contrario.
     """
     db = get_db()
-    doc = {"activo": True, **propietario}
-    db.propietarios.update_one(
-        {"id_propietario": doc["id_propietario"]}, {"$set": doc}, upsert=True)
-    return doc["id_propietario"]
+    pid = propietario["id_propietario"]
+    if db.propietarios.find_one({"id_propietario": pid}, {"_id": 1}):
+        raise PropietarioDuplicadoError(f"El propietario {pid} ya existe")
+    db.propietarios.insert_one({"activo": True, **propietario})
+    return pid
 
 
 def modificar_propietario(id_propietario: str, cambios: dict) -> int:

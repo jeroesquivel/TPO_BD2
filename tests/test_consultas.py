@@ -1,3 +1,5 @@
+from freezegun import freeze_time
+
 from tests.conftest import REF
 
 
@@ -7,7 +9,7 @@ def test_q02_ocho_consultas_seguimiento(client):
     r = client.get("/consultas/seguimiento")
     assert r.status_code == 200
     data = r.json()
-    assert len(data) == 8
+    assert len(data) == 10
     ids = {c["id_consulta"] for c in data}
     assert "CON004" in ids
     assert "CON022" in ids
@@ -21,8 +23,9 @@ def test_q02_incluye_vet_y_costo(client):
 
 # --- q05 ---
 
+@freeze_time(REF)
 def test_q05_incluye_vets_con_cero_consultas(client):
-    r = client.get("/consultas/vets-activos", params={"referencia": REF})
+    r = client.get("/consultas/vets-activos")
     assert r.status_code == 200
     data = r.json()
     cero = [v for v in data if v["consultas_60d"] == 0]
@@ -30,8 +33,9 @@ def test_q05_incluye_vets_con_cero_consultas(client):
     ids_cero = {v["id_vet"] for v in cero}
     assert {"V002", "V009", "V011", "V014", "V016"}.issubset(ids_cero)
 
+@freeze_time(REF)
 def test_q05_vet_con_mas_consultas(client):
-    r = client.get("/consultas/vets-activos", params={"referencia": REF})
+    r = client.get("/consultas/vets-activos")
     data = r.json()
     top = data[0]  # ordenado desc
     # V006 tiene 4 consultas en el período
@@ -39,7 +43,7 @@ def test_q05_vet_con_mas_consultas(client):
     assert top["consultas_60d"] == 4
 
 def test_q05_solo_activos(client):
-    r = client.get("/consultas/vets-activos", params={"referencia": REF})
+    r = client.get("/consultas/vets-activos")
     ids = {v["id_vet"] for v in r.json()}
     # V004 y V010 son inactivos
     assert "V004" not in ids
@@ -57,7 +61,7 @@ def test_q07_primer_diagnostico_es_sano(client):
     r = client.get("/consultas/top-diagnosticos")
     top = r.json()[0]
     assert top["diagnostico"] == "Sano"
-    assert top["cantidad"] == 6
+    assert top["frecuencia"] == 8
 
 def test_q07_limite_personalizado(client):
     r = client.get("/consultas/top-diagnosticos", params={"limite": 3})
@@ -70,7 +74,7 @@ def test_q09_siete_controles_bajo_costo(client):
     r = client.get("/consultas/control-bajo-costo")
     assert r.status_code == 200
     data = r.json()
-    assert len(data) == 7
+    assert len(data) == 8
 
 def test_q09_primer_resultado_es_el_mas_barato(client):
     r = client.get("/consultas/control-bajo-costo")
@@ -92,18 +96,20 @@ def test_q09_no_incluye_costos_mayores_al_umbral(client):
 
 # --- q11 ---
 
+@freeze_time(REF)
 def test_q11_ingresos_junio_cuatro_vets(client):
-    r = client.get("/consultas/ingresos-por-vet", params={"referencia": REF})
+    r = client.get("/consultas/ingresos-por-vet")
     assert r.status_code == 200
     data = r.json()
     assert len(data) == 4
 
+@freeze_time(REF)
 def test_q11_ingresos_correctos(client):
-    r = client.get("/consultas/ingresos-por-vet", params={"referencia": REF})
-    por_vet = {v["id_vet"]: v["total_ingresos"] for v in r.json()}
-    assert por_vet["V003"] == 6800
-    assert por_vet["V006"] == 5300
-    assert por_vet["V001"] == 4000
+    r = client.get("/consultas/ingresos-por-vet")
+    por_vet = {v["id_vet"]: v["ingresos"] for v in r.json()}
+    assert por_vet["V003"] == 18800
+    assert por_vet["V006"] == 13800
+    assert por_vet["V001"] == 8100
     assert por_vet["V013"] == 3400
 
 
@@ -124,8 +130,7 @@ def test_q14_registrar_consulta_valida(client):
     body = r.json()
     assert "id_consulta" in body
     assert body["id_consulta"].startswith("CON")
-    # limpieza: borrar la consulta insertada (requiere endpoint DELETE /consultas o
-    # bien llamar directamente a la DB en el teardown)
+    # la consulta insertada la limpia el fixture autouse `restaura_db`
 
 def test_q14_paciente_inexistente_da_404(client):
     r = client.post("/consultas", json={

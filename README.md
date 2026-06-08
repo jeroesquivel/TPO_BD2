@@ -84,7 +84,14 @@ docker compose run --rm etl
 | `POST` | `/stock/{id}/decrementar`             | q15 | Decrementar unidades (atómico) |
 
 Errores de negocio: `404` si el paciente/veterinario no existe (`ValidacionError`),
-`409` si el stock es insuficiente (`StockError`).
+`409` si el stock es insuficiente (`StockError`) o si se da de alta un propietario
+con un `id_propietario` ya existente (`PropietarioDuplicadoError`).
+
+**Fecha de referencia:** las consultas sensibles al tiempo (`/consultas/vets-activos`,
+`/pacientes/vacunas-vencidas`, `/consultas/ingresos-por-vet`,
+`/propietarios/sin-consultas`) usan `datetime.now()` — la API se mantiene limpia, sin
+parámetros de fecha. El dataset está anclado a **2026-06-01**; los tests congelan el
+reloj con `freezegun` para que esas consultas sean deterministas.
 
 ---
 

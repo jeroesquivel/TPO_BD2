@@ -1,6 +1,3 @@
-from tests.conftest import REF
-
-
 # helpers
 def cache_keys(redis) -> set:
     return set(redis.keys("cache:*"))
@@ -43,7 +40,7 @@ def test_invalidacion_post_propietario_limpia_q01_q04_q12(client, redis):
     # poblar caché
     client.get("/pacientes/activos")
     client.get("/propietarios/multi-paciente")
-    client.get("/propietarios/sin-consultas", params={"referencia": REF})
+    client.get("/propietarios/sin-consultas")
     assert any(k.startswith("cache:q01") for k in cache_keys(redis))
     assert any(k.startswith("cache:q04") for k in cache_keys(redis))
     assert any(k.startswith("cache:q12") for k in cache_keys(redis))
@@ -68,12 +65,12 @@ def test_invalidacion_post_consulta_limpia_claves_afectadas(client, redis):
     # poblar caché de todas las queries afectadas
     client.get("/consultas/seguimiento")                                    # q02
     client.get("/pacientes/P001/historial")                                 # q03:P001
-    client.get("/consultas/vets-activos", params={"referencia": REF})       # q05
+    client.get("/consultas/vets-activos")                                   # q05
     client.get("/consultas/top-diagnosticos")                               # q07
     client.get("/consultas/control-bajo-costo")                             # q09
     client.get("/pacientes/por-sucursal", params={"sucursal": "Palermo"})   # q10
-    client.get("/consultas/ingresos-por-vet", params={"referencia": REF})   # q11
-    client.get("/propietarios/sin-consultas", params={"referencia": REF})   # q12
+    client.get("/consultas/ingresos-por-vet")                               # q11
+    client.get("/propietarios/sin-consultas")                               # q12
 
     antes = cache_keys(redis)
     assert any(k.startswith("cache:q02") for k in antes)

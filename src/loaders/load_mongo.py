@@ -1,14 +1,3 @@
-"""ETL CSV -> MongoDB para VetSalud.
-
-Lee los CSV de `data/`, aplica las reglas de limpieza (sección 7) e inserta los
-documentos en las colecciones correspondientes, creando además los índices
-sugeridos (sección 6). El orden de carga respeta las dependencias entre
-entidades: propietarios y veterinarios primero, luego pacientes, y por último
-consultas y vacunaciones.
-
-Las fechas se almacenan como `datetime` y los montos como números, requisito
-indispensable para los filtros temporales y las sumas de las consultas.
-"""
 
 from __future__ import annotations
 
