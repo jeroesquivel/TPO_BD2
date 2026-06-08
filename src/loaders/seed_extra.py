@@ -1,4 +1,4 @@
-"""Registros adicionales de poblamiento (sección 8 de la guía).
+"""Registros adicionales de poblamiento 
 
 Agrega **al menos 10 registros propios por colección**, diseñados "de atrás hacia
 adelante" para que cada una de las 15 consultas devuelva resultados significativos.

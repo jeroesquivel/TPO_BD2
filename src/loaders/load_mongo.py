@@ -127,7 +127,6 @@ def _map_vacunacion(row: dict, vet_by_id: dict) -> dict:
 
 
 def _create_indexes(db) -> None:
-    """Crea los índices sugeridos en la sección 6 de la guía."""
     db.pacientes.create_index([("id_paciente", ASCENDING)], unique=True)
     db.pacientes.create_index([("id_propietario", ASCENDING)])
     db.propietarios.create_index([("id_propietario", ASCENDING)], unique=True)
