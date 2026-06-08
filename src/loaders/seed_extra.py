@@ -100,6 +100,13 @@ CONSULTAS = [
     # Consulta antigua de P013 (propietario C011): su última consulta queda
     # ANTES de 2025-06-01, por lo que C011 aparece en la consulta 12.
     ("CON026", "P013", "V001", "2024-12-10", "Control anual", "Sano", 3000, "Cerrada"),
+    # Consultas de junio 2026 días 02-05: concentradas en V003/V006/V001
+    # para que q11 muestre acumulación real en el mes.
+    ("CON027", "P002", "V003", "2026-06-02", "Revisión dermatitis", "Dermatitis atópica", 6200, "Seguimiento"),
+    ("CON028", "P009", "V006", "2026-06-03", "Control post-cirugía", "Sano", 3800, "Cerrada"),
+    ("CON029", "P010", "V006", "2026-06-03", "Otitis", "Otitis externa", 4700, "Cerrada"),
+    ("CON030", "P001", "V001", "2026-06-04", "Vacunación anual", "Sano", 4100, "Cerrada"),
+    ("CON031", "P016", "V003", "2026-06-05", "Seguimiento alergia", "Dermatitis atópica", 5800, "Seguimiento"),
 ]
 
 VACUNACIONES = [
@@ -114,6 +121,8 @@ VACUNACIONES = [
     ("VAC014", "P005", "V005", "2025-12-01", "Sextuple", "2026-12-01"),     # futura
     ("VAC015", "P011", "V007", "2025-05-25", "Antirrábica", "2026-05-25"),  # vencida
     ("VAC016", "P015", "V012", "2026-04-01", "Antirrábica", "2027-04-01"),  # futura
+    ("VAC017", "P012", "V006", "2026-04-15", "Sextuple", "2027-04-15"),     # futura
+    ("VAC018", "P017", "V008", "2026-05-10", "Triple Felina", "2027-05-10"),  # futura
 ]
 
 CIRUGIAS = [
