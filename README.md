@@ -77,7 +77,7 @@ docker compose run --rm etl
 | `DELETE`| `/propietarios/{id}`                 | q13 | Baja lógica de propietario |
 | `GET`  | `/consultas/seguimiento`              | q02 | Consultas en 'Seguimiento' con vet y costo |
 | `GET`  | `/consultas/vets-activos`             | q05 | Veterinarios activos y consultas de los últimos 60 días |
-| `GET`  | `/consultas/top-diagnosticos?limite=` | q07 | Top diagnósticos más frecuentes |
+| `GET`  | `/consultas/top-diagnosticos?limite=` | q07 | Top N diagnósticos más frecuentes (`limite` por defecto 5) |
 | `GET`  | `/consultas/control-bajo-costo?umbral=`| q09 | Consultas 'Control' con costo bajo |
 | `GET`  | `/consultas/ingresos-por-vet`         | q11 | Ingresos por veterinario en el mes |
 | `POST` | `/consultas`                          | q14 | Registrar consulta (valida paciente y vet) |
@@ -242,7 +242,7 @@ lectura transversal a todas ellas.
 | 4  | Propietarios con más de un paciente                           | lectura  |
 | 5  | Veterinarios activos y consultas en los últimos 60 días       | lectura  |
 | 6  | Pacientes con vacunas vencidas                                | lectura  |
-| 7  | Top diagnósticos más frecuentes                               | lectura  |
+| 7  | Top 5 diagnósticos más frecuentes (`limite` parametrizable)   | lectura  |
 | 8  | Stock con menos de 50 unidades y su proveedor                 | lectura  |
 | 9  | Consultas de tipo 'Control' con costo bajo                    | lectura  |
 | 10 | Pacientes de una sucursal (vía veterinario)                   | lectura  |
