@@ -25,6 +25,14 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build: .
+    ports: ["8000:8000"]
+    depends_on: [mongo, redis]
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      REDIS_HOST: redis
+
 volumes:
   mongo_data:
   redis_data:
