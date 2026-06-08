@@ -1,9 +1,9 @@
-"""Consulta 3 — Historial completo de un paciente: consultas y vacunaciones
-ordenadas por fecha.
+"""Consulta 3 — Historial completo de un paciente: consultas, vacunaciones y
+cirugías ordenadas por fecha.
 
-Motor: MongoDB. Técnica: `$unionWith` de ambas colecciones + `$sort` por fecha.
-Se unifican consultas y vacunaciones en una única línea de tiempo, normalizando
-el campo de fecha (`fecha` para consultas, `fecha_aplicacion` para vacunas).
+Motor: MongoDB. Técnica: dos `$unionWith` (vacunaciones + cirugías) + `$sort`
+por fecha. Se unifican las tres colecciones en una única línea de tiempo,
+normalizando el campo de fecha.
 """
 
 from __future__ import annotations
@@ -35,6 +35,20 @@ def historial_paciente(id_paciente: str) -> list[dict]:
                     "fecha": "$fecha_aplicacion",
                     "detalle": "$nombre_vacuna",
                     "diagnostico": {"$literal": None},
+                    "id_vet": "$id_vet",
+                }},
+            ],
+        }},
+        {"$unionWith": {
+            "coll": "cirugias",
+            "pipeline": [
+                {"$match": {"id_paciente": id_paciente}},
+                {"$project": {
+                    "_id": 0,
+                    "tipo": {"$literal": "Cirugía"},
+                    "fecha": "$fecha",
+                    "detalle": "$tipo",
+                    "diagnostico": "$resultado",
                     "id_vet": "$id_vet",
                 }},
             ],

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import sys
 
+from src.config import FECHA_REFERENCIA
 from src.db import mongo, redis_client
 from src.db.cache import flush_cache
 from src.loaders import load_mongo, seed_extra
@@ -47,9 +48,9 @@ CONSULTAS = {
     "q04": ("Propietarios con más de un paciente",
             q04_propietarios_multipaciente.propietarios_con_varios_pacientes),
     "q05": ("Vets activos y consultas (60 días)",
-            q05_vets_consultas_60dias.vets_activos_consultas_ultimos_60_dias),
+            lambda: q05_vets_consultas_60dias.vets_activos_consultas_ultimos_60_dias(FECHA_REFERENCIA)),
     "q06": ("Pacientes con vacunas vencidas",
-            q06_vacunas_vencidas.vacunas_vencidas),
+            lambda: q06_vacunas_vencidas.vacunas_vencidas(FECHA_REFERENCIA)),
     "q07": ("Top 5 diagnósticos",
             q07_top_diagnosticos.top_diagnosticos),
     "q08": ("Stock con menos de 50 unidades",
@@ -59,9 +60,9 @@ CONSULTAS = {
     "q10": ("Pacientes de la sucursal Palermo",
             lambda: q10_pacientes_por_sucursal.pacientes_por_sucursal("Palermo")),
     "q11": ("Ingresos por veterinario (mes actual)",
-            q11_ingresos_por_vet_mes.ingresos_por_vet_mes_actual),
+            lambda: q11_ingresos_por_vet_mes.ingresos_por_vet_mes_actual(FECHA_REFERENCIA)),
     "q12": ("Propietarios sin consultas en el último año",
-            q12_propietarios_sin_consultas.propietarios_sin_consultas_ultimo_anio),
+            lambda: q12_propietarios_sin_consultas.propietarios_sin_consultas_ultimo_anio(FECHA_REFERENCIA)),
 }
 
 # Los servicios mutadores se demuestran con su propio bloque __main__.

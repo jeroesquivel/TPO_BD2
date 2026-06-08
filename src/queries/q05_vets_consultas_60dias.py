@@ -1,9 +1,10 @@
 """Consulta 5 — Veterinarios activos y cantidad de consultas realizadas en los
 últimos 60 días.
 
-Motor: MongoDB. Técnica: `match` por fecha `>= hoy-60d` + `$group` por `id_vet`
-+ `$lookup` a veterinarios filtrando los activos. El límite de fecha se calcula
-en código con `datetime` (no se hardcodea) para que sea reproducible.
+Motor: MongoDB. Técnica: nacer de `veterinarios` con `{activo: True}` +
+`$lookup` correlacionado a `consultas` (filtrado por fecha) + `$size` del array.
+Al nacer de la colección maestra se incluyen los vets con 0 consultas en el
+período (que la versión anterior omitía por nacer de `consultas`).
 """
 
 from __future__ import annotations
@@ -17,6 +18,8 @@ from src.queries._util import print_result
 def vets_activos_consultas_ultimos_60_dias(referencia: datetime | None = None) -> list[dict]:
     """Cuenta las consultas de los últimos 60 días por veterinario activo.
 
+    Incluye veterinarios con 0 consultas en el período.
+
     Args:
         referencia: fecha de corte (por defecto `datetime.now()`).
     """
@@ -24,26 +27,27 @@ def vets_activos_consultas_ultimos_60_dias(referencia: datetime | None = None) -
     ahora = referencia or datetime.now()
     desde = ahora - timedelta(days=60)
     pipeline = [
-        {"$match": {"fecha": {"$gte": desde, "$lte": ahora}}},
-        {"$group": {"_id": "$id_vet", "consultas_60d": {"$sum": 1}}},
+        {"$match": {"activo": True}},
         {"$lookup": {
-            "from": "veterinarios",
-            "localField": "_id",
-            "foreignField": "id_vet",
-            "as": "vet",
+            "from": "consultas",
+            "let": {"vid": "$id_vet"},
+            "pipeline": [{"$match": {"$expr": {"$and": [
+                {"$eq":  ["$id_vet", "$$vid"]},
+                {"$gte": ["$fecha",  desde]},
+                {"$lte": ["$fecha",  ahora]},
+            ]}}}],
+            "as": "consultas_recientes",
         }},
-        {"$unwind": "$vet"},
-        {"$match": {"vet.activo": True}},
         {"$project": {
             "_id": 0,
-            "id_vet": "$_id",
-            "veterinario": {"$concat": ["$vet.nombre", " ", "$vet.apellido"]},
-            "sucursal": "$vet.sucursal",
-            "consultas_60d": 1,
+            "id_vet": 1,
+            "veterinario": {"$concat": ["$nombre", " ", "$apellido"]},
+            "sucursal": 1,
+            "consultas_60d": {"$size": "$consultas_recientes"},
         }},
         {"$sort": {"consultas_60d": -1, "id_vet": 1}},
     ]
-    return list(db.consultas.aggregate(pipeline))
+    return list(db.veterinarios.aggregate(pipeline))
 
 
 if __name__ == "__main__":  # pragma: no cover

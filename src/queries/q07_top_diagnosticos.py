@@ -1,6 +1,9 @@
 """Consulta 7 — Top 5 diagnósticos más frecuentes.
 
 Motor: MongoDB. Técnica: `$group` por `diagnostico` + `$sort` desc + `$limit 5`.
+
+Supuesto: se incluye "Sano" como diagnóstico válido (el enunciado no lo excluye).
+Solo se descartan los campos vacíos.
 """
 
 from __future__ import annotations

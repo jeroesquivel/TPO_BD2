@@ -2,7 +2,8 @@
 veterinario existentes.
 
 Motor: MongoDB. Técnica: verificar la existencia de `id_paciente` e `id_vet` y,
-solo si ambos existen, `insert_one`. Es un servicio que muta datos.
+solo si ambos existen, `insert_one` con los campos desnormalizados del vet
+(snapshot) para consistencia con las demás consultas.
 """
 
 from __future__ import annotations
@@ -18,12 +19,10 @@ class ValidacionError(ValueError):
 
 
 def _siguiente_id_consulta(db) -> str:
-    """Genera el próximo id_consulta correlativo (CONNNN)."""
-    ultimo = db.consultas.find_one(sort=[("id_consulta", -1)])
-    if not ultimo:
-        return "CON001"
-    numero = int(ultimo["id_consulta"].replace("CON", "")) + 1
-    return f"CON{numero:03d}"
+    """Genera el próximo id_consulta correlativo (CONNNN) usando el máximo numérico."""
+    ids = db.consultas.distinct("id_consulta")
+    nums = [int(i[3:]) for i in ids if i.startswith("CON") and i[3:].isdigit()]
+    return f"CON{(max(nums) + 1) if nums else 1:03d}"
 
 
 def registrar_consulta(
@@ -42,20 +41,27 @@ def registrar_consulta(
         ValidacionError: si el paciente o el veterinario no existen.
     """
     db = get_db()
-    if not db.pacientes.find_one({"id_paciente": id_paciente}):
+    pac_doc = db.pacientes.find_one({"id_paciente": id_paciente}, {"_id": 0})
+    if not pac_doc:
         raise ValidacionError(f"El paciente {id_paciente} no existe")
-    if not db.veterinarios.find_one({"id_vet": id_vet}):
+    vet_doc = db.veterinarios.find_one({"id_vet": id_vet}, {"_id": 0})
+    if not vet_doc:
         raise ValidacionError(f"El veterinario {id_vet} no existe")
 
     doc = {
-        "id_consulta": id_consulta or _siguiente_id_consulta(db),
-        "id_paciente": id_paciente,
-        "id_vet": id_vet,
-        "fecha": fecha or datetime.now(),
-        "motivo": motivo,
-        "diagnostico": diagnostico,
-        "costo": costo,
-        "estado": estado,
+        "id_consulta":     id_consulta or _siguiente_id_consulta(db),
+        "id_paciente":     id_paciente,
+        "id_vet":          id_vet,
+        "fecha":           fecha or datetime.now(),
+        "motivo":          motivo,
+        "diagnostico":     diagnostico,
+        "costo":           costo,
+        "estado":          estado,
+        "vet_nombre":      vet_doc["nombre"],
+        "vet_apellido":    vet_doc["apellido"],
+        "vet_especialidad": vet_doc["especialidad"],
+        "vet_sucursal":    vet_doc["sucursal"],
+        "id_propietario":  pac_doc["id_propietario"],
     }
     db.consultas.insert_one(doc)
     doc.pop("_id", None)
