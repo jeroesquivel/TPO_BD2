@@ -1,18 +1,17 @@
 """Consulta 15 — Actualización masiva del stock: decrementar unidades de un
 producto tras una consulta.
 
-Motor: **Redis**. Técnica: `HINCRBY stock:<id> unidades -<n>` (operación atómica,
-sin condiciones de carrera). Se valida que el producto exista y que el stock no
-quede negativo; para el control de stock insuficiente se usa una transacción con
-`WATCH` (patrón check-and-set) que aborta si otra escritura modifica el hash.
+Motor: **MongoDB**. Técnica: `find_one_and_update` con filtro atómico
+`{unidades: {$gte: cantidad}}` y `{$inc: {unidades: -cantidad}}`. Si el filtro
+no matchea (stock insuficiente), devuelve None → error de negocio sin condición
+de carrera.
 """
 
 from __future__ import annotations
 
-import redis
+from pymongo import ReturnDocument
 
-from src.db.redis_client import get_redis
-from src.loaders.load_redis import SET_PRODUCTOS, STOCK_PREFIX
+from src.db.mongo import get_db
 from src.queries._util import print_result
 
 
@@ -37,36 +36,27 @@ def decrementar_stock(id_producto: str, cantidad: int) -> dict:
     if cantidad <= 0:
         raise StockError("La cantidad a decrementar debe ser positiva")
 
-    r = get_redis()
-    key = f"{STOCK_PREFIX}{id_producto}"
-
-    if not r.sismember(SET_PRODUCTOS, id_producto) or not r.exists(key):
+    db = get_db()
+    antes = db.stock.find_one({"id_producto": id_producto}, {"_id": 0, "unidades": 1})
+    if not antes:
         raise StockError(f"El producto {id_producto} no existe")
 
-    # Transacción optimista: WATCH bloquea si otro cliente toca la clave entre
-    # la lectura y el HINCRBY, evitando dejar el stock negativo.
-    with r.pipeline() as pipe:
-        while True:
-            try:
-                pipe.watch(key)
-                actual = int(pipe.hget(key, "unidades") or 0)
-                if actual < cantidad:
-                    pipe.unwatch()
-                    raise StockError(
-                        f"Stock insuficiente de {id_producto}: "
-                        f"hay {actual}, se pidieron {cantidad}")
-                pipe.multi()
-                pipe.hincrby(key, "unidades", -cantidad)
-                nuevo = pipe.execute()[0]
-                break
-            except redis.WatchError:  # pragma: no cover - reintento por contención
-                continue
+    doc = db.stock.find_one_and_update(
+        {"id_producto": id_producto, "unidades": {"$gte": cantidad}},
+        {"$inc": {"unidades": -cantidad}},
+        return_document=ReturnDocument.AFTER,
+        projection={"_id": 0, "unidades": 1},
+    )
+    if doc is None:
+        raise StockError(
+            f"Stock insuficiente de {id_producto}: hay {antes['unidades']}, "
+            f"se pidieron {cantidad}")
 
     return {
         "id_producto": id_producto,
-        "unidades_antes": actual,
+        "unidades_antes": antes["unidades"],
         "decremento": cantidad,
-        "unidades_despues": nuevo,
+        "unidades_despues": doc["unidades"],
     }
 
 

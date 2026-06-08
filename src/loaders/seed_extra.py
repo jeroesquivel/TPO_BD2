@@ -16,8 +16,8 @@ La fecha de referencia del proyecto es **2026-06-01**; por eso se incluyen:
 - Stock con unidades < 50 y otros con más                     -> consulta 8.
 - Cirugías pobladas desde cero, coherentes con pacientes/vets.
 
-Es idempotente: usa `replace_one(..., upsert=True)` por id natural en MongoDB y
-`HSET` en Redis, de modo que puede re-ejecutarse sin duplicar.
+Es idempotente: usa `replace_one(..., upsert=True)` por id natural en MongoDB,
+de modo que puede re-ejecutarse sin duplicar.
 """
 
 from __future__ import annotations
@@ -25,8 +25,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from src.db.mongo import get_db
-from src.db.redis_client import get_redis
-from src.loaders.load_redis import upsert_producto
 
 
 def _d(text: str) -> datetime:
@@ -160,7 +158,6 @@ def _upsert(coll, key: str, docs: list[dict]) -> int:
 def seed() -> dict[str, int]:
     """Inserta los registros adicionales en MongoDB y Redis. Idempotente."""
     db = get_db()
-    r = get_redis()
 
     propietarios = [
         dict(zip(
@@ -214,11 +211,15 @@ def seed() -> dict[str, int]:
         "cirugias": _upsert(db.cirugias, "id_cirugia", cirugias),
     }
 
-    for row in STOCK:
-        upsert_producto(r, dict(zip(
-            ("id_producto", "nombre", "categoria", "unidades",
-             "precio_unit", "vencimiento", "proveedor"), row)))
-    counts["stock"] = len(STOCK)
+    productos = [
+        {
+            "id_producto": s[0], "nombre": s[1], "categoria": s[2],
+            "unidades": s[3], "precio_unit": s[4],
+            "vencimiento": _d(s[5]), "proveedor": s[6],
+        }
+        for s in STOCK
+    ]
+    counts["stock"] = _upsert(db.stock, "id_producto", productos)
 
     return counts
 

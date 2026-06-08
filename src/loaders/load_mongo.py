@@ -35,6 +35,7 @@ COLLECTIONS = (
     "consultas",
     "vacunaciones",
     "cirugias",
+    "stock",
 )
 
 
@@ -97,6 +98,18 @@ def _map_consulta(row: dict) -> dict:
     }
 
 
+def _map_producto(row: dict) -> dict:
+    return {
+        "id_producto": clean_str(row["id_producto"]),
+        "nombre": clean_str(row["nombre"]),
+        "categoria": normalize_categoria(row["categoria"]),
+        "unidades": parse_number(row["unidades"]),
+        "precio_unit": parse_number(row["precio_unit"]),
+        "vencimiento": parse_date(row["vencimiento"]),
+        "proveedor": clean_str(row["proveedor"]),
+    }
+
+
 def _map_vacunacion(row: dict) -> dict:
     return {
         "id_vacuna": clean_str(row["id_vacuna"]),
@@ -122,6 +135,9 @@ def _create_indexes(db) -> None:
     db.vacunaciones.create_index([("id_paciente", ASCENDING)])
     db.vacunaciones.create_index([("proxima_dosis", ASCENDING)])
     db.cirugias.create_index([("id_cirugia", ASCENDING)], unique=True)
+    db.stock.create_index([("id_producto", ASCENDING)], unique=True)
+    db.stock.create_index([("unidades", ASCENDING)])
+    db.stock.create_index([("vencimiento", ASCENDING)])
 
 
 def load(drop: bool = True) -> dict[str, int]:
@@ -144,8 +160,8 @@ def load(drop: bool = True) -> dict[str, int]:
     pacientes = [_map_paciente(r) for r in _read_csv("pacientes.csv")]
     consultas = [_map_consulta(r) for r in _read_csv("consultas.csv")]
     vacunaciones = [_map_vacunacion(r) for r in _read_csv("vacunaciones.csv")]
+    stock = [_map_producto(r) for r in _read_csv("stock_farmaceutico.csv")]
 
-    counts: dict[str, int] = {}
     if propietarios:
         db.propietarios.insert_many(propietarios)
     if veterinarios:
@@ -156,6 +172,8 @@ def load(drop: bool = True) -> dict[str, int]:
         db.consultas.insert_many(consultas)
     if vacunaciones:
         db.vacunaciones.insert_many(vacunaciones)
+    if stock:
+        db.stock.insert_many(stock)
 
     _create_indexes(db)
 
@@ -165,13 +183,12 @@ def load(drop: bool = True) -> dict[str, int]:
         "pacientes": len(pacientes),
         "consultas": len(consultas),
         "vacunaciones": len(vacunaciones),
+        "stock": len(stock),
     }
     return counts
 
 
-# La normalización de categoría se usa en el loader de Redis; se reexporta aquí
-# para que el ETL completo comparta las mismas reglas de limpieza.
-__all__ = ["load", "normalize_categoria"]
+__all__ = ["load"]
 
 
 if __name__ == "__main__":  # pragma: no cover

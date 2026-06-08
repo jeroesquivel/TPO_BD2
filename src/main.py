@@ -4,7 +4,7 @@ Permite ejecutar el ETL completo y correr las 15 consultas/servicios, ya sea de
 forma interactiva (menú) o por línea de comandos.
 
 Uso:
-    python -m src.main etl            # ejecuta load_mongo + load_redis + seed_extra
+    python -m src.main etl            # ejecuta load_mongo + seed_extra + flush_cache
     python -m src.main all            # corre las 15 consultas (ejemplos)
     python -m src.main q07            # corre una consulta puntual
     python -m src.main                # menú interactivo
@@ -15,7 +15,8 @@ from __future__ import annotations
 import sys
 
 from src.db import mongo, redis_client
-from src.loaders import load_mongo, load_redis, seed_extra
+from src.db.cache import flush_cache
+from src.loaders import load_mongo, seed_extra
 from src.queries import (
     q01_pacientes_activos,
     q02_consultas_seguimiento,
@@ -72,12 +73,12 @@ def run_etl() -> None:
     print(">> Verificando conexiones...")
     mongo.ping()
     redis_client.ping()
-    print(">> Cargando MongoDB (base)...")
+    print(">> Cargando MongoDB...")
     load_mongo.load()
-    print(">> Cargando Redis (stock base)...")
-    load_redis.load()
     print(">> Cargando registros adicionales (seed)...")
     seed_extra.seed()
+    print(">> Limpiando caché Redis...")
+    flush_cache()
     print(">> ETL completo.")
 
 
