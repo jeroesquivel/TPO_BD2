@@ -27,12 +27,11 @@ mutan datos), expuestos como **API REST** (FastAPI) con separación de capas
 
 ## Cómo correr el proyecto
 
-Hay dos formas de levantarlo: **Docker Compose** (recomendada, todo en contenedores)
-o **local con venv** (para desarrollo). Elegí una.
+
 
 ---
 
-### Opción A — Docker Compose (recomendada)
+### Docker Compose 
 
 El `docker-compose.yml` define cuatro servicios: `mongo` y `redis` (infra
 **persistente**), `app` (la API) y dos servicios *a demanda* protegidos por
