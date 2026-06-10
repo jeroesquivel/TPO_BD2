@@ -38,7 +38,9 @@ def vets_activos_consultas_ultimos_60_dias(referencia: datetime | None = None) -
         {"$project": {
             "_id": 0,
             "id_vet": 1,
-            "veterinario": {"$concat": ["$nombre", " ", "$apellido"]},
+            "nombre": 1,
+            "apellido": 1,
+            "especialidad": 1,
             "sucursal": 1,
             "consultas_60d": {"$size": "$consultas_recientes"},
         }},
