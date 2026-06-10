@@ -6,10 +6,5 @@
   },
   "forwardPorts": [8000, 27017, 6379],
   "postCreateCommand": "docker compose up -d --build && docker compose run --rm etl",
-  "postStartCommand": "docker compose up -d",
-  "customizations": {
-    "vscode": {
-      "extensions": ["ms-python.python"]
-    }
-  }
+  "postStartCommand": "docker compose up -d"
 }
