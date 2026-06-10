@@ -27,5 +27,5 @@ def r03(id_paciente: str):
 
 @router.get("/{id_paciente}/historial-completo")
 def r03_completo(id_paciente: str):
-    """Extra (fuera del enunciado §4 #3): historial + cirugías."""
+    """Extra historial + cirugías."""
     return pacientes_service.get_historial_completo(id_paciente)
