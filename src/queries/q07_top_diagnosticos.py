@@ -3,7 +3,7 @@
 Motor: MongoDB. Técnica: `$group` por `diagnostico` + `$sort` desc + `$limit 5`.
 
 Supuesto: se incluye "Sano" como diagnóstico válido (el enunciado no lo excluye).
-Solo se descartan los campos vacíos.
+Se descartan los diagnósticos vacíos, nulos o ausentes (`$nin: ["", None]`).
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ def top_diagnosticos(limite: int = 5) -> list[dict]:
     """Devuelve los `limite` diagnósticos más frecuentes con su conteo."""
     db = get_db()
     pipeline = [
-        {"$match": {"diagnostico": {"$ne": ""}}},
+        {"$match": {"diagnostico": {"$nin": ["", None]}}},
         {"$group": {"_id": "$diagnostico", "frecuencia": {"$sum": 1}}},
         {"$sort": {"frecuencia": -1, "_id": 1}},
         {"$limit": limite},

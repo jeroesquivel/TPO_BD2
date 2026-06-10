@@ -19,9 +19,14 @@ from src.queries._util import print_result
 
 
 def propietarios_sin_consultas_ultimo_anio(referencia: datetime | None = None) -> list[dict]:
-    """Devuelve los propietarios sin consultas en los últimos 365 días."""
+    """Devuelve los propietarios sin consultas en los últimos 365 días.
+
+    La ventana es [corte, ahora]: una consulta con fecha futura no cuenta como
+    reciente (cota superior simétrica a la consulta 5).
+    """
     db = get_db()
-    corte = (referencia or datetime.now()) - timedelta(days=365)
+    ahora = referencia or datetime.now()
+    corte = ahora - timedelta(days=365)
     pipeline = [
         {"$lookup": {
             "from": "consultas",
@@ -29,6 +34,7 @@ def propietarios_sin_consultas_ultimo_anio(referencia: datetime | None = None) -
             "pipeline": [{"$match": {"$expr": {"$and": [
                 {"$eq":  ["$id_propietario", "$$pid"]},
                 {"$gte": ["$fecha", corte]},
+                {"$lte": ["$fecha", ahora]},
             ]}}}],
             "as": "consultas_recientes",
         }},
