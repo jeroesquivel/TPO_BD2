@@ -24,7 +24,6 @@ def consultas_en_seguimiento() -> list[dict]:
             "motivo": 1,
             "diagnostico": 1,
             "costo": 1,
-            "estado": 1,
             "veterinario": {"$concat": ["$vet_nombre", " ", "$vet_apellido"]},
             "especialidad": "$vet_especialidad",
         }},
