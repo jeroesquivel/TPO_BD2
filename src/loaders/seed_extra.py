@@ -123,6 +123,7 @@ VACUNACIONES = [
     ("VAC016", "P015", "V012", "2026-04-01", "Antirrábica", "2027-04-01"),  # futura
     ("VAC017", "P012", "V006", "2026-04-15", "Sextuple", "2027-04-15"),     # futura
     ("VAC018", "P017", "V008", "2026-05-10", "Triple Felina", "2027-05-10"),  # futura
+    ("VAC019", "P002", "V003", "2025-03-12", "Sextuple", "2026-03-12"),     # vencida
 ]
 
 CIRUGIAS = [

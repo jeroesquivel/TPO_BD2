@@ -35,6 +35,8 @@ def pacientes_por_sucursal(sucursal: str) -> list[dict]:
             "id_paciente": "$_id",
             "nombre": "$paciente.nombre",
             "especie": "$paciente.especie",
+            "raza": "$paciente.raza",
+            "activo": "$paciente.activo",
             "veterinarios": 1,
         }},
         {"$sort": {"id_paciente": 1}},

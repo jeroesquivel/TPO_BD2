@@ -17,11 +17,15 @@ def vacunas_vencidas(referencia: datetime | None = None) -> list[dict]:
     ahora = referencia or datetime.now()
     pipeline = [
         {"$match": {"proxima_dosis": {"$lt": ahora}}},
-        {"$project": {"_id": 0}},
         {"$sort": {"proxima_dosis": 1}},  # ordena las vacunas dentro de cada array
         {"$group": {
             "_id": "$id_paciente",
-            "vacunas_vencidas": {"$push": "$$ROOT"},
+            "vacunas_vencidas": {"$push": {
+                "id_vacuna": "$id_vacuna",
+                "nombre_vacuna": "$nombre_vacuna",
+                "fecha_aplicacion": "$fecha_aplicacion",
+                "proxima_dosis": "$proxima_dosis",
+            }},
         }},
         {"$lookup": {
             "from": "pacientes",
@@ -32,9 +36,13 @@ def vacunas_vencidas(referencia: datetime | None = None) -> list[dict]:
         {"$unwind": "$paciente"},
         {"$project": {
             "_id": 0,
-            "id_paciente": "$_id",
-            "paciente": "$paciente.nombre",
+            "id_paciente": "$paciente.id_paciente",
+            "nombre": "$paciente.nombre",
             "especie": "$paciente.especie",
+            "raza": "$paciente.raza",
+            "fecha_nac": "$paciente.fecha_nac",
+            "id_propietario": "$paciente.id_propietario",
+            "activo": "$paciente.activo",
             "vacunas_vencidas": 1,
         }},
         {"$sort": {"id_paciente": 1}},
