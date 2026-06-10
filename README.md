@@ -46,6 +46,44 @@ docker compose run --rm etl
 
 ---
 
+## Inspeccionar los datos: CLI de Mongo y Redis
+
+Los contenedores ya traen sus shells (`mongosh` y `redis-cli`), así que **no hay que
+instalar nada**: se entra con `docker compose exec`. En Codespaces funcionan los
+mismos comandos.
+
+### Mongo (`mongosh`)
+
+```bash
+# Abrir un shell interactivo sobre la base del proyecto
+docker compose exec mongo mongosh vetsalud
+
+# O ejecutar una sola consulta sin entrar al shell (--eval)
+docker compose exec mongo mongosh vetsalud --eval 'db.pacientes.countDocuments()'
+```
+
+Una vez adentro del shell (`vetsalud>`):
+
+```javascript
+show collections                          // pacientes, propietarios, consultas, vacunaciones, stock, ...
+db.pacientes.find().limit(5)              // primeros 5 documentos
+db.pacientes.findOne({ id_paciente: "P001" })
+db.stock.find({ unidades: { $lt: 50 } })  // stock bajo
+db.consultas.countDocuments()
+db.getCollectionNames()                   // incluye la vista vista_ingresos_por_vet
+exit                                       // salir
+```
+
+### Redis (`redis-cli`)
+
+```bash
+# Abrir un shell interactivo
+docker compose exec redis redis-cli
+
+# O ejecutar un solo comando
+docker compose exec redis redis-cli KEYS '*'
+```
+
 ## Detener la infraestructura
 
 ```bash
