@@ -1,7 +1,4 @@
 """Conexión a Redis para el stock farmacéutico de VetSalud.
-
-Expone un cliente cacheado configurado con `decode_responses=True` para trabajar
-con strings de Python en lugar de bytes.
 """
 
 from __future__ import annotations

@@ -1,13 +1,5 @@
 """Consulta 12 — Propietarios sin consultas registradas en el último año.
 
-Motor: MongoDB. Técnica: **un solo** `$lookup` correlacionado de `propietarios`
-a `consultas` por `id_propietario` (campo desnormalizado), con filtro de fecha.
-Elimina la cadena doble propietarios → pacientes → consultas.
-
-Supuesto: `id_propietario` en cada consulta es un snapshot del dueño al momento
-de la atención. Un cambio de dueño posterior no afecta el historial registrado.
-El caso borde "propietario con 0 pacientes" se incluye correctamente (sin
-consultas → aparece en el resultado).
 """
 
 from __future__ import annotations

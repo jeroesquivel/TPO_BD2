@@ -1,7 +1,5 @@
 """Consulta 6 — Pacientes con vacunas vencidas (próxima dosis anterior a hoy).
 
-Motor: MongoDB. Técnica: `find(proxima_dosis < datetime.now())` + `$lookup` a
-`pacientes`. El corte temporal se calcula dinámicamente.
 """
 
 from __future__ import annotations

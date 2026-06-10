@@ -1,10 +1,4 @@
-"""Cache-aside sobre Redis para VetSalud.
-
-La caché es una **optimización**, no una dependencia dura: la fuente de verdad es
-Mongo. Si Redis no está disponible, las lecturas se sirven igual desde Mongo y las
-invalidaciones son best-effort (no rompen la escritura que ya commiteó). Las fechas
-se serializan a ISO para que un *miss* (objetos `datetime`) y un *hit* (strings desde
-Redis) devuelvan exactamente el mismo formato.
+"""Cache sobre Redis para VetSalud.
 """
 
 from __future__ import annotations

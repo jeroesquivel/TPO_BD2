@@ -1,12 +1,5 @@
 """Consulta 10 — Todos los pacientes de una sucursal determinada (a través del
 veterinario que los atendió).
-
-Motor: MongoDB. Técnica: `$match` por `vet_sucursal` (campo desnormalizado) +
-`$group` para deduplicar + **un solo** `$lookup` a `pacientes`. Elimina la
-cadena doble veterinarios → consultas → pacientes.
-
-Supuesto: pertenencia a sucursal = haber tenido al menos una consulta atendida
-por un veterinario de esa sucursal (no vacunación/cirugía).
 """
 
 from __future__ import annotations

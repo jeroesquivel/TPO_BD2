@@ -1,7 +1,4 @@
 """Consulta 8 — Stock de productos con menos de 50 unidades y su proveedor.
-
-Motor: **MongoDB**. Filtra `{unidades: {$lt: umbral}}` y devuelve los campos
-relevantes ordenados por unidades ascendente.
 """
 
 from __future__ import annotations

@@ -1,10 +1,7 @@
 """Consulta 5 — Veterinarios activos y cantidad de consultas realizadas en los
 últimos 60 días.
 
-Motor: MongoDB. Técnica: nacer de `veterinarios` con `{activo: True}` +
-`$lookup` correlacionado a `consultas` (filtrado por fecha) + `$size` del array.
-Al nacer de la colección maestra se incluyen los vets con 0 consultas en el
-período (que la versión anterior omitía por nacer de `consultas`).
+
 """
 
 from __future__ import annotations

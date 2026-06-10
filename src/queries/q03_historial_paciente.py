@@ -1,11 +1,5 @@
 """Consulta 3 — Historial completo de un paciente: consultas y vacunaciones
 ordenadas por fecha (enunciado §4 #3).
-
-Motor: MongoDB. Técnica: `$unionWith` (vacunaciones) + `$sort` por fecha. Se unifican
-las colecciones en una única línea de tiempo, normalizando el campo de fecha.
-
-`historial_completo` es una **variante extendida** (fuera del enunciado) que además
-suma las cirugías; sirve para dar visibilidad a esa colección.
 """
 
 from __future__ import annotations

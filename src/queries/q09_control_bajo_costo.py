@@ -1,8 +1,5 @@
 """Consulta 9 — Consultas de tipo 'Control' con costo menor a $5.000.
 
-Motor: MongoDB. Técnica: `find(motivo regex ^Control, costo < 5000)`.
-Usa prefijo `^Control` (case-insensitive) para capturar "Control anual",
-"Control post-vacuna", "Control", etc.
 """
 
 from __future__ import annotations

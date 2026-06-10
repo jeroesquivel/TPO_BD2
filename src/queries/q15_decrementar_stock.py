@@ -1,10 +1,6 @@
 """Consulta 15 — Actualización masiva del stock: decrementar unidades de un
 producto tras una consulta.
 
-Motor: **MongoDB**. Técnica: `find_one_and_update` con filtro atómico
-`{unidades: {$gte: cantidad}}` y `{$inc: {unidades: -cantidad}}`. Si el filtro
-no matchea (stock insuficiente), devuelve None → error de negocio sin condición
-de carrera.
 """
 
 from __future__ import annotations

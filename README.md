@@ -118,7 +118,7 @@ tocar nada de esto.
 | `GET`  | `/consultas/vets-activos`             | q05 | Veterinarios activos y consultas de los últimos 60 días |
 | `GET`  | `/consultas/top-diagnosticos?limite=` | q07 | Top N diagnósticos más frecuentes (`limite` por defecto 5) |
 | `GET`  | `/consultas/control-bajo-costo?umbral=`| q09 | Consultas 'Control' con costo bajo |
-| `GET`  | `/consultas/ingresos-por-vet`         | q11 | Ingresos por veterinario en el mes |
+| `GET`  | `/consultas/ingresos-por-vet`         | q11 | Ingresos por veterinario en el mes (lee la **vista** `vista_ingresos_por_vet`) |
 | `POST` | `/consultas`                          | q14 | Registrar consulta (valida paciente y vet) |
 | `GET`  | `/stock/bajo?umbral=`                 | q08 | Stock con menos de N unidades y proveedor |
 | `POST` | `/stock/{id}/decrementar`             | q15 | Decrementar unidades (atómico) |
@@ -172,20 +172,23 @@ Ejemplo de salida (`top-diagnosticos?limite=3`):
 **ABM de propietarios (q13):**
 
 ```bash
-# Alta → devuelve el id_propietario creado ("C900")
+# Alta → devuelve el propietario creado (objeto completo, con activo por defecto)
 curl -X POST localhost:8000/propietarios \
   -H 'Content-Type: application/json' \
   -d '{"id_propietario":"C900","nombre":"Ada","apellido":"Lovelace","dni":"12345678",
        "email":"ada@vetsalud.com","telefono":"1144440000","ciudad":"CABA",
        "provincia":"Buenos Aires","activo":true}'
+# → {"activo":true,"id_propietario":"C900","nombre":"Ada","apellido":"Lovelace", ... ,"provincia":"Buenos Aires"}
 
-# Modificación → devuelve la cantidad de documentos modificados (1)
+# Modificación → devuelve el propietario ya actualizado (objeto completo)
 curl -X PUT localhost:8000/propietarios/C900 \
   -H 'Content-Type: application/json' \
   -d '{"email":"ada.new@vetsalud.com","telefono":"1122223333"}'
+# → {"activo":true,"id_propietario":"C900", ... ,"email":"ada.new@vetsalud.com","telefono":"1122223333"}
 
-# Baja lógica (activo=false) → devuelve 1
+# Baja lógica → marca activo=false (no borra) y devuelve el propietario ya actualizado
 curl -X DELETE localhost:8000/propietarios/C900
+# → {"activo":false,"id_propietario":"C900","nombre":"Ada", ... ,"provincia":"Buenos Aires"}
 ```
 
 **Registrar consulta (q14)** — valida que el paciente y el veterinario existan:
@@ -279,7 +282,7 @@ lectura transversal a todas ellas.
 | 8  | Stock con menos de 50 unidades y su proveedor                 | lectura  |
 | 9  | Consultas de tipo 'Control' con costo bajo                    | lectura  |
 | 10 | Pacientes de una sucursal (vía veterinario)                   | lectura  |
-| 11 | Ingresos totales por veterinario en el mes actual             | lectura  |
+| 11 | Ingresos totales por veterinario en el mes actual (vista de MongoDB) | lectura  |
 | 12 | Propietarios sin consultas en el último año                   | lectura  |
 | 13 | ABM completo de propietarios (alta, modificación, baja lógica)| servicio |
 | 14 | Registro de consulta con validación de paciente y veterinario | servicio |

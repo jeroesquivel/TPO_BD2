@@ -1,11 +1,6 @@
 """Consulta 11 — Vista agregada: ingresos totales por veterinario en el mes actual.
 
-Motor: MongoDB. Técnica: `match` por el rango del mes actual + `$group` por
-`id_vet` con `$sum: "$costo"`. Usa los campos desnormalizados
-`vet_nombre`/`vet_apellido`/`vet_sucursal` como `$first` en el grupo (0 lookups).
 
-Supuesto: ingresos = suma de todas las consultas del mes, independientemente
-del estado (incluye "Seguimiento").
 """
 
 from __future__ import annotations
@@ -14,6 +9,44 @@ from datetime import datetime
 
 from src.db.mongo import get_db
 from src.queries._util import print_result
+
+# Nombre de la vista de MongoDB que respalda esta consulta (la crea el loader).
+VISTA = "vista_ingresos_por_vet"
+
+# Etapas posteriores al `$match`: idénticas para la vista (mes dinámico vía $$NOW)
+# y para la agregación parametrizada por un mes fijo (pruebas/demos deterministas).
+_ETAPAS_AGREGACION = [
+    {"$group": {
+        "_id": "$id_vet",
+        "vet_nombre":   {"$first": "$vet_nombre"},
+        "vet_apellido": {"$first": "$vet_apellido"},
+        "vet_sucursal": {"$first": "$vet_sucursal"},
+        "ingresos":           {"$sum": "$costo"},
+        "cantidad_consultas": {"$sum": 1},
+    }},
+    {"$project": {
+        "_id": 0,
+        "id_vet":    "$_id",
+        "veterinario": {"$concat": ["$vet_nombre", " ", "$vet_apellido"]},
+        "sucursal":  "$vet_sucursal",
+        "ingresos": 1,
+        "cantidad_consultas": 1,
+    }},
+    {"$sort": {"ingresos": -1}},
+]
+
+
+def pipeline_vista() -> list[dict]:
+    """Pipeline que respalda la vista: ingresos del mes en curso resuelto con `$$NOW`.
+
+    El `$match` compara año+mes de cada `fecha` contra los de `$$NOW`, de modo que
+    la vista refleja siempre el mes vigente en el reloj del servidor MongoDB.
+    """
+    match_mes_actual = {"$match": {"$expr": {"$and": [
+        {"$eq": [{"$year": "$fecha"}, {"$year": "$$NOW"}]},
+        {"$eq": [{"$month": "$fecha"}, {"$month": "$$NOW"}]},
+    ]}}}
+    return [match_mes_actual, *_ETAPAS_AGREGACION]
 
 
 def _rango_mes_actual(referencia: datetime) -> tuple[datetime, datetime]:
@@ -26,29 +59,13 @@ def _rango_mes_actual(referencia: datetime) -> tuple[datetime, datetime]:
 
 
 def ingresos_por_vet_mes_actual(referencia: datetime | None = None) -> list[dict]:
-    """Devuelve los ingresos totales por veterinario en el mes en curso."""
+    """Ingresos totales por veterinario en el mes en curso.
+    """
     db = get_db()
-    inicio, fin = _rango_mes_actual(referencia or datetime.now())
-    pipeline = [
-        {"$match": {"fecha": {"$gte": inicio, "$lt": fin}}},
-        {"$group": {
-            "_id": "$id_vet",
-            "vet_nombre":   {"$first": "$vet_nombre"},
-            "vet_apellido": {"$first": "$vet_apellido"},
-            "vet_sucursal": {"$first": "$vet_sucursal"},
-            "ingresos":           {"$sum": "$costo"},
-            "cantidad_consultas": {"$sum": 1},
-        }},
-        {"$project": {
-            "_id": 0,
-            "id_vet":    "$_id",
-            "veterinario": {"$concat": ["$vet_nombre", " ", "$vet_apellido"]},
-            "sucursal":  "$vet_sucursal",
-            "ingresos": 1,
-            "cantidad_consultas": 1,
-        }},
-        {"$sort": {"ingresos": -1}},
-    ]
+    if referencia is None:
+        return list(db[VISTA].find({}, {"_id": 0}))
+    inicio, fin = _rango_mes_actual(referencia)
+    pipeline = [{"$match": {"fecha": {"$gte": inicio, "$lt": fin}}}, *_ETAPAS_AGREGACION]
     return list(db.consultas.aggregate(pipeline))
 
 

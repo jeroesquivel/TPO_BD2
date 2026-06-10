@@ -1,8 +1,4 @@
 """Conexión a MongoDB para VetSalud.
-
-Centraliza la creación del cliente y la obtención de la base de datos a partir
-de las variables de entorno (`MONGO_URI`, `MONGO_DB`). El cliente se cachea para
-reutilizar el pool de conexiones de pymongo.
 """
 
 from __future__ import annotations

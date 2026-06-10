@@ -1,6 +1,4 @@
 """Consulta 1 — Pacientes activos con todos sus datos de propietario.
-
-Motor: MongoDB. Técnica: `match` por `activo=true` + `$lookup` a `propietarios`.
 """
 
 from __future__ import annotations

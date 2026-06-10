@@ -1,9 +1,6 @@
 """Consulta 14 — Registro de nueva consulta médica con validación de paciente y
 veterinario existentes.
 
-Motor: MongoDB. Técnica: verificar la existencia de `id_paciente` e `id_vet` y,
-solo si ambos existen, `insert_one` con los campos desnormalizados del vet
-(snapshot) para consistencia con las demás consultas.
 """
 
 from __future__ import annotations

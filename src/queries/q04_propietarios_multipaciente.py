@@ -1,7 +1,6 @@
 """Consulta 4 — Propietarios con más de un paciente registrado.
 
-Motor: MongoDB. Técnica: `$group` por `id_propietario` con `$sum`, filtrar `> 1`
-y `$lookup` para traer los datos del propietario.
+
 """
 
 from __future__ import annotations

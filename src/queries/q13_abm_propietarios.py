@@ -1,9 +1,5 @@
 """Consulta 13 — ABM completo de propietarios: alta, modificación y baja lógica.
 
-Motor: MongoDB. Técnica: `insert_one` (alta real, falla si el id ya existe),
-`update_one` con `$set` (modificación) y baja lógica con `{activo: False}`. Es un
-servicio que muta datos: deja el estado consistente y permite mostrar un
-antes/después.
 """
 
 from __future__ import annotations

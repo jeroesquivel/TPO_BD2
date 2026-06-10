@@ -1,9 +1,4 @@
 """Modelos Pydantic para validar los cuerpos de los endpoints que mutan datos.
-
-Centralizan tipos, campos requeridos y restricciones (p. ej. cantidad positiva).
-FastAPI los valida automáticamente y devuelve 422 ante un cuerpo inválido, en vez
-de fallar con un 500 más abajo. Además, `fecha: datetime` hace que una fecha ISO
-del cliente se almacene como `datetime` en Mongo (consistente con el ETL).
 """
 
 from __future__ import annotations

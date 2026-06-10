@@ -1,12 +1,4 @@
-"""Utilidades de limpieza y normalización para el ETL (sección 7 de la guía).
 
-Reglas obligatorias:
-- Fechas `YYYY-MM-DD` -> `datetime`.
-- Booleanos `"True"/"False"` (string) -> `bool` real.
-- Números (`costo`, `precio_unit`, `unidades`) -> tipo numérico.
-- `strip()` en todos los campos de texto.
-- Normalizar categorías con punto final sobrante (p. ej. `"Antiparasitario."`).
-"""
 
 from __future__ import annotations
 

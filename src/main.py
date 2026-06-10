@@ -1,12 +1,10 @@
 """Punto de entrada de VetSalud — carga de datos.
 
-Uso:
-    python -m src.main
 """
 
 from src.db import mongo, redis_client
 from src.db.cache import flush_cache
-from src.loaders import load_mongo, seed_extra
+from src.loaders import load_mongo, seed_extra, views
 
 
 def run_etl() -> None:
@@ -17,6 +15,8 @@ def run_etl() -> None:
     load_mongo.load()
     print(">> Cargando registros adicionales (seed)...")
     seed_extra.seed()
+    print(">> Creando vistas de MongoDB...")
+    views.ensure_views()
     print(">> Limpiando caché Redis...")
     flush_cache()
     print(">> ETL completo.")

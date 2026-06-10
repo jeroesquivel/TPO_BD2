@@ -1,6 +1,16 @@
+from datetime import datetime
+
+import pytest
 from freezegun import freeze_time
 
+from src.db.mongo import get_db
 from tests.conftest import REF
+
+# La vista de q11 usa `$$NOW` (reloj del servidor Mongo), que `freeze_time` NO
+# controla. El seed concentra las consultas en el mes de referencia del proyecto,
+# así que los montos exactos solo son verificables cuando el reloj real cae en él.
+_MES_SEED = "2026-06"
+_es_mes_seed = datetime.now().strftime("%Y-%m") == _MES_SEED
 
 
 # --- q02 ---
@@ -94,16 +104,38 @@ def test_q09_no_incluye_costos_mayores_al_umbral(client):
         assert c["costo"] < 5000
 
 
-# --- q11 ---
+# --- q11 (vista agregada de MongoDB) ---
 
-@freeze_time(REF)
+def test_q11_es_vista_real():
+    """La consigna pide una *vista*: debe ser una view real de Mongo, no una
+    colección ni una agregación ad-hoc."""
+    db = get_db()
+    info = next(iter(db.list_collections(filter={"name": "vista_ingresos_por_vet"})), None)
+    assert info is not None, "la vista no existe (¿corriste el ETL?)"
+    assert info["type"] == "view"
+    assert info["options"]["viewOn"] == "consultas"
+
+
+def test_q11_endpoint_coincide_con_agregacion(client):
+    """El endpoint lee la vista (mes según `$$NOW`); debe coincidir con la
+    agregación equivalente para el mes real en curso. Independiente del reloj."""
+    from src.queries import q11_ingresos_por_vet_mes as q11
+    esperado = q11.ingresos_por_vet_mes_actual(datetime.now())
+    r = client.get("/consultas/ingresos-por-vet")
+    assert r.status_code == 200
+    assert r.json() == esperado
+
+
+@pytest.mark.skipif(not _es_mes_seed,
+                    reason=f"la vista usa $$NOW; los montos del seed solo aplican en {_MES_SEED}")
 def test_q11_ingresos_junio_cuatro_vets(client):
     r = client.get("/consultas/ingresos-por-vet")
     assert r.status_code == 200
     data = r.json()
     assert len(data) == 4
 
-@freeze_time(REF)
+@pytest.mark.skipif(not _es_mes_seed,
+                    reason=f"la vista usa $$NOW; los montos del seed solo aplican en {_MES_SEED}")
 def test_q11_ingresos_correctos(client):
     r = client.get("/consultas/ingresos-por-vet")
     por_vet = {v["id_vet"]: v["ingresos"] for v in r.json()}
