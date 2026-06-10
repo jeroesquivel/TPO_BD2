@@ -69,14 +69,16 @@ def test_q06_vacunas_vencidas_son_cinco(client):
     r = client.get("/pacientes/vacunas-vencidas")
     assert r.status_code == 200
     data = r.json()
-    assert len(data) == 5
-    ids = {v["id_vacuna"] for v in data}
+    # un row por paciente, cada uno con su array de vacunas vencidas (con id_vacuna)
+    assert all(p["vacunas_vencidas"] for p in data)
+    assert sum(len(p["vacunas_vencidas"]) for p in data) == 5
+    ids = {v["id_vacuna"] for p in data for v in p["vacunas_vencidas"]}
     assert ids == {"VAC007", "VAC008", "VAC009", "VAC010", "VAC015"}
 
 @freeze_time(REF)
 def test_q06_no_incluye_vacunas_futuras(client):
     r = client.get("/pacientes/vacunas-vencidas")
-    ids = {v["id_vacuna"] for v in r.json()}
+    ids = {v["id_vacuna"] for p in r.json() for v in p["vacunas_vencidas"]}
     # VAC011..VAC014, VAC016: próxima dosis futura
     assert not ids.intersection({"VAC011", "VAC012", "VAC013", "VAC014", "VAC016"})
 

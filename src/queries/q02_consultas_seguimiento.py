@@ -1,8 +1,8 @@
 """Consulta 2 — Consultas médicas abiertas (estado 'Seguimiento') con
 veterinario asignado y costo.
 
-Motor: MongoDB. Técnica: `match` por estado + `$project` usando los campos
-desnormalizados `vet_nombre`/`vet_apellido`/`vet_especialidad` (0 lookups).
+Motor: MongoDB. Técnica: `match` por estado + `$project` que arma el objeto del
+veterinario desde el snapshot desnormalizado de `consultas` (0 lookups).
 """
 
 from __future__ import annotations
@@ -24,8 +24,13 @@ def consultas_en_seguimiento() -> list[dict]:
             "motivo": 1,
             "diagnostico": 1,
             "costo": 1,
-            "veterinario": {"$concat": ["$vet_nombre", " ", "$vet_apellido"]},
-            "especialidad": "$vet_especialidad",
+            "veterinario": {
+                "id_vet": "$id_vet",
+                "nombre": "$vet_nombre",
+                "apellido": "$vet_apellido",
+                "especialidad": "$vet_especialidad",
+                "sucursal": "$vet_sucursal",
+            },
         }},
         {"$sort": {"fecha": 1}},
     ]

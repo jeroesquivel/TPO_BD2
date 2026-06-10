@@ -34,9 +34,13 @@ def propietarios_sin_consultas_ultimo_anio(referencia: datetime | None = None) -
         {"$project": {
             "_id": 0,
             "id_propietario": 1,
-            "propietario": {"$concat": ["$nombre", " ", "$apellido"]},
+            "nombre": 1,
+            "apellido": 1,
+            "dni": 1,
             "email": 1,
+            "telefono": 1,
             "ciudad": 1,
+            "provincia": 1,
         }},
         {"$sort": {"id_propietario": 1}},
     ]

@@ -11,29 +11,33 @@ from src.queries._util import print_result
 
 
 def vacunas_vencidas(referencia: datetime | None = None) -> list[dict]:
-    """Devuelve las vacunaciones cuya próxima dosis ya venció, con el paciente."""
+    """Devuelve los pacientes con vacunas vencidas; cada uno con el array de sus
+    vacunaciones vencidas (con todos los datos de cada una)."""
     db = get_db()
     ahora = referencia or datetime.now()
     pipeline = [
         {"$match": {"proxima_dosis": {"$lt": ahora}}},
+        {"$project": {"_id": 0}},
+        {"$sort": {"proxima_dosis": 1}},  # ordena las vacunas dentro de cada array
+        {"$group": {
+            "_id": "$id_paciente",
+            "vacunas_vencidas": {"$push": "$$ROOT"},
+        }},
         {"$lookup": {
             "from": "pacientes",
-            "localField": "id_paciente",
+            "localField": "_id",
             "foreignField": "id_paciente",
             "as": "paciente",
         }},
         {"$unwind": "$paciente"},
         {"$project": {
             "_id": 0,
-            "id_vacuna": 1,
-            "id_paciente": 1,
+            "id_paciente": "$_id",
             "paciente": "$paciente.nombre",
             "especie": "$paciente.especie",
-            "nombre_vacuna": 1,
-            "fecha_aplicacion": 1,
-            "proxima_dosis": 1,
+            "vacunas_vencidas": 1,
         }},
-        {"$sort": {"proxima_dosis": 1}},
+        {"$sort": {"id_paciente": 1}},
     ]
     return list(db.vacunaciones.aggregate(pipeline))
 

@@ -22,7 +22,6 @@ _ETAPAS_AGREGACION = [
         "vet_apellido": {"$first": "$vet_apellido"},
         "vet_sucursal": {"$first": "$vet_sucursal"},
         "ingresos":           {"$sum": "$costo"},
-        "cantidad_consultas": {"$sum": 1},
     }},
     {"$project": {
         "_id": 0,
@@ -30,7 +29,6 @@ _ETAPAS_AGREGACION = [
         "veterinario": {"$concat": ["$vet_nombre", " ", "$vet_apellido"]},
         "sucursal":  "$vet_sucursal",
         "ingresos": 1,
-        "cantidad_consultas": 1,
     }},
     {"$sort": {"ingresos": -1}},
 ]

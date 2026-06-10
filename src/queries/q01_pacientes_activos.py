@@ -26,6 +26,7 @@ def pacientes_activos_con_propietario() -> list[dict]:
             "especie": 1,
             "raza": 1,
             "propietario": {
+                "id_propietario": "$propietario.id_propietario",
                 "nombre": "$propietario.nombre",
                 "apellido": "$propietario.apellido",
                 "dni": "$propietario.dni",
