@@ -45,6 +45,12 @@ def test_q13_alta_propietario(client):
     }
     r = client.post("/propietarios", json=nuevo)
     assert r.status_code == 200
+    # el alta devuelve el documento creado completo (con activo por defecto)
+    body = r.json()
+    assert body["id_propietario"] == "CTEST"
+    assert body["nombre"] == "Test"
+    assert body["activo"] is True
+    assert "_id" not in body            # no se filtra el ObjectId de Mongo
     # los propietarios de prueba (CTEST*) los limpia el fixture autouse `restaura_db`
 
 def test_q13_modificar_propietario(client):
@@ -55,6 +61,11 @@ def test_q13_modificar_propietario(client):
 
     r = client.put("/propietarios/CTEST2", json={"ciudad": "Córdoba"})
     assert r.status_code == 200
+    # la modificación devuelve el documento ya actualizado
+    body = r.json()
+    assert body["ciudad"] == "Córdoba"  # refleja el cambio
+    assert body["nombre"] == "Mod"      # conserva el resto de los campos
+    assert "_id" not in body
 
 def test_q13_baja_logica(client):
     nuevo = {"id_propietario": "CTEST3", "nombre": "Baja", "apellido": "Test",
@@ -64,6 +75,11 @@ def test_q13_baja_logica(client):
 
     r = client.delete("/propietarios/CTEST3")
     assert r.status_code == 200
+    # la baja lógica devuelve el documento ya marcado como inactivo (no lo borra)
+    body = r.json()
+    assert body["id_propietario"] == "CTEST3"
+    assert body["activo"] is False
+    assert "_id" not in body
 
 def test_q13_alta_duplicada_da_409(client):
     # C001 ya existe en el seed; con cuerpo válido debe fallar por duplicado

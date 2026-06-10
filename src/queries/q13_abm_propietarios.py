@@ -8,6 +8,8 @@ antes/después.
 
 from __future__ import annotations
 
+from pymongo import ReturnDocument
+
 from src.db.mongo import get_db
 from src.queries._util import print_result
 
@@ -16,8 +18,8 @@ class PropietarioDuplicadoError(ValueError):
     """Se intentó dar de alta un `id_propietario` que ya existe."""
 
 
-def alta_propietario(propietario: dict) -> str:
-    """Da de alta un propietario nuevo. Devuelve su `id_propietario`.
+def alta_propietario(propietario: dict) -> dict:
+    """Da de alta un propietario nuevo. Devuelve el documento creado.
 
     Es un alta real (no idempotente): si el `id_propietario` ya existe lanza
     `PropietarioDuplicadoError`. El propietario nace activo si no se indica lo
@@ -27,25 +29,40 @@ def alta_propietario(propietario: dict) -> str:
     pid = propietario["id_propietario"]
     if db.propietarios.find_one({"id_propietario": pid}, {"_id": 1}):
         raise PropietarioDuplicadoError(f"El propietario {pid} ya existe")
-    db.propietarios.insert_one({"activo": True, **propietario})
-    return pid
+    doc = {"activo": True, **propietario}
+    db.propietarios.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
 
 
-def modificar_propietario(id_propietario: str, cambios: dict) -> int:
-    """Modifica los datos de un propietario. Devuelve filas modificadas."""
+def modificar_propietario(id_propietario: str, cambios: dict) -> dict | None:
+    """Modifica los datos de un propietario y devuelve el documento ya actualizado.
+
+    Devuelve `None` si el `id_propietario` no existe.
+    """
     db = get_db()
     cambios = {k: v for k, v in cambios.items() if k != "id_propietario"}
-    res = db.propietarios.update_one(
-        {"id_propietario": id_propietario}, {"$set": cambios})
-    return res.modified_count
+    return db.propietarios.find_one_and_update(
+        {"id_propietario": id_propietario},
+        {"$set": cambios},
+        projection={"_id": 0},
+        return_document=ReturnDocument.AFTER,
+    )
 
 
-def baja_logica_propietario(id_propietario: str) -> int:
-    """Baja lógica: marca `activo=False` sin borrar el documento."""
+def baja_logica_propietario(id_propietario: str) -> dict | None:
+    """Baja lógica: marca `activo=False` sin borrar el documento.
+
+    Devuelve el documento ya actualizado (con `activo=False`), o `None` si el
+    `id_propietario` no existe.
+    """
     db = get_db()
-    res = db.propietarios.update_one(
-        {"id_propietario": id_propietario}, {"$set": {"activo": False}})
-    return res.modified_count
+    return db.propietarios.find_one_and_update(
+        {"id_propietario": id_propietario},
+        {"$set": {"activo": False}},
+        projection={"_id": 0},
+        return_document=ReturnDocument.AFTER,
+    )
 
 
 def obtener_propietario(id_propietario: str) -> dict | None:
