@@ -16,10 +16,6 @@ class PropietarioDuplicadoError(ValueError):
 
 def alta_propietario(propietario: dict) -> dict:
     """Da de alta un propietario nuevo. Devuelve el documento creado.
-
-    Es un alta real (no idempotente): si el `id_propietario` ya existe lanza
-    `PropietarioDuplicadoError`. El propietario nace activo si no se indica lo
-    contrario.
     """
     db = get_db()
     pid = propietario["id_propietario"]
@@ -48,9 +44,6 @@ def modificar_propietario(id_propietario: str, cambios: dict) -> dict | None:
 
 def baja_logica_propietario(id_propietario: str) -> dict | None:
     """Baja lógica: marca `activo=False` sin borrar el documento.
-
-    Devuelve el documento ya actualizado (con `activo=False`), o `None` si el
-    `id_propietario` no existe.
     """
     db = get_db()
     return db.propietarios.find_one_and_update(

@@ -7,8 +7,7 @@ from __future__ import annotations
 from src.db.mongo import get_db
 from src.queries._util import print_result
 
-# Eventos de consulta (raíz del pipeline) y de vacunación (unión), normalizados a
-# una línea de tiempo común. Las cirugías quedan aparte (ver historial_completo).
+
 _PROJ_CONSULTA = {
     "_id": 0,
     "tipo": {"$literal": "Consulta"},

@@ -7,6 +7,8 @@ from src.db.mongo import get_db
 from src.queries._util import print_result
 
 
+# OBS: Si hay pacientes activos sin propietario, no se incluyen en el resultado. Se asume que
+
 def pacientes_activos_con_propietario() -> list[dict]:
     """Devuelve los pacientes activos junto a los datos de su propietario."""
     db = get_db()

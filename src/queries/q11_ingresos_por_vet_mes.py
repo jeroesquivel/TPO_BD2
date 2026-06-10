@@ -39,7 +39,6 @@ _ETAPAS_AGREGACION = [
 
 def pipeline_vista() -> list[dict]:
     """Pipeline que respalda la vista: ingresos del mes en curso resuelto con `$$NOW`.
-
     El `$match` compara año+mes de cada `fecha` contra los de `$$NOW`, de modo que
     la vista refleja siempre el mes vigente en el reloj del servidor MongoDB.
     """

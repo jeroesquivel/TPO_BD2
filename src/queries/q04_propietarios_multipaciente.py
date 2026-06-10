@@ -35,8 +35,6 @@ def propietarios_con_varios_pacientes() -> list[dict]:
         {"$unwind": "$propietario"},
         {"$project": {
             "_id": 0,
-            # Datos del propietario (entidad principal): planos y completos, igual
-            # que q01 (anidado) y q12 (plano) — los 8 campos, sin concatenar.
             "id_propietario": "$_id",
             "nombre":    "$propietario.nombre",
             "apellido":  "$propietario.apellido",

@@ -1,8 +1,5 @@
 """Consulta 2 — Consultas médicas abiertas (estado 'Seguimiento') con
 veterinario asignado y costo.
-
-Motor: MongoDB. Técnica: `match` por estado + `$project` que arma el objeto del
-veterinario desde el snapshot desnormalizado de `consultas` (0 lookups).
 """
 
 from __future__ import annotations
