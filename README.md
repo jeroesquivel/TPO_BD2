@@ -49,6 +49,17 @@ docker compose up -d              # los datos persisten en los volúmenes
 docker compose run --rm etl
 ```
 
+
+---
+
+## Detener la infraestructura
+
+```bash
+docker compose down            # detiene los contenedores
+docker compose down -v         # además borra los volúmenes (datos persistidos)
+```
+
+
 - **Swagger UI:** http://localhost:8000/docs (rutas agrupadas por *tag*).
 - **Health check:** http://localhost:8000/health
 
@@ -301,12 +312,3 @@ las lecturas con `get_or_set_cache` y disparan `invalidate` en las escrituras.
 
 TTL por defecto: `1 h` (consultas normales) y `12 h` (agregados casi estáticos,
 ej. q07). Ver `src/db/cache.py`.
-
----
-
-## Detener la infraestructura
-
-```bash
-docker compose down            # detiene los contenedores
-docker compose down -v         # además borra los volúmenes (datos persistidos)
-```
