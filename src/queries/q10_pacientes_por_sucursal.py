@@ -16,7 +16,12 @@ def pacientes_por_sucursal(sucursal: str) -> list[dict]:
         {"$group": {
             "_id": "$id_paciente",
             "veterinarios": {"$addToSet": {
-                "$concat": ["$vet_nombre", " ", "$vet_apellido"]}},
+                "id_vet": "$id_vet",
+                "nombre": "$vet_nombre",
+                "apellido": "$vet_apellido",
+                "especialidad": "$vet_especialidad",
+                "sucursal": "$vet_sucursal",
+            }},
         }},
         {"$lookup": {
             "from": "pacientes",

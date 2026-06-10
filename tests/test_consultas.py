@@ -6,9 +6,6 @@ from freezegun import freeze_time
 from src.db.mongo import get_db
 from tests.conftest import REF
 
-# La vista de q11 usa `$$NOW` (reloj del servidor Mongo), que `freeze_time` NO
-# controla. El seed concentra las consultas en el mes de referencia del proyecto,
-# así que los montos exactos solo son verificables cuando el reloj real cae en él.
 _MES_SEED = "2026-06"
 _es_mes_seed = datetime.now().strftime("%Y-%m") == _MES_SEED
 

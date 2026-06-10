@@ -13,10 +13,12 @@ def propietarios_con_varios_pacientes() -> list[dict]:
     """Devuelve los propietarios que tienen más de un paciente."""
     db = get_db()
     pipeline = [
+        # descarta el _id de Mongo para que cada paciente se empuje "limpio"
+        {"$project": {"_id": 0}},
         {"$group": {
             "_id": "$id_propietario",
             "cantidad_pacientes": {"$sum": 1},
-            "pacientes": {"$push": "$nombre"},
+            "pacientes": {"$push": "$$ROOT"},
         }},
         {"$match": {"cantidad_pacientes": {"$gt": 1}}},
         {"$lookup": {
