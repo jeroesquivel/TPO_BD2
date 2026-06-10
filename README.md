@@ -56,6 +56,46 @@ docker compose run --rm etl
 `redis_data`). `docker compose down` **conserva** el estado; sólo
 `docker compose down -v` borra los volúmenes.
 
+### En GitHub Codespaces
+
+El repo trae un *devcontainer* con **Docker adentro** (`docker-in-docker`), así que
+en Codespaces se usan **exactamente los mismos comandos** que en local.
+
+1. En GitHub: **Code → Codespaces → Create codespace on `main`**.
+2. Esperá a que termine de crearse. **No hay que correr nada a mano:** el
+   `postCreateCommand` ya buildea, levanta `mongo` + `redis` + `app` y **carga los
+   datos (ETL)**. Cuando termina, la API ya está corriendo **con datos**.
+   *(Si parás y reabrís el Codespace, el `postStartCommand` vuelve a levantar los
+   servicios; los datos persisten en los volúmenes, el ETL no se re-corre.)*
+3. *(Opcional)* Los mismos comandos del README sirven para recargar, relevantar o
+   borrar todo y empezar de cero:
+
+   ```bash
+   docker compose run --rm etl       # recargar datos: el ETL ya borra y re-siembra (drop + seed)
+   docker compose up -d              # relevantar servicios si hizo falta
+
+   # Borrón total (también elimina los volúmenes mongo_data / redis_data):
+   docker compose down -v
+   docker compose up -d --build
+   docker compose run --rm etl
+   ```
+
+#### Acceder a la API (puerto 8000)
+
+1. Abrí la pestaña **PORTS / PUERTOS** del Codespace.
+2. Buscá el puerto **8000** (lo expone la API). Su *Forwarded Address* es algo como:
+   `https://TU-CODESPACE-8000.app.github.dev`
+3. Abrila en el navegador → **Swagger** en `/docs`, *health check* en `/health`.
+   Los endpoints cuelgan de la **raíz** (no hay prefijo `/api`): `/pacientes/activos`,
+   `/consultas/seguimiento`, etc.
+4. *(Opcional)* Si necesitás que algo **de afuera** del Codespace le pegue a la API
+   (entregar una URL navegable, Postman desde otra máquina, un front separado):
+   clic derecho en el puerto 8000 → **Port Visibility → Public**. Por defecto es
+   **Private** y sólo vos (logueado) podés abrirlo.
+
+Desde la terminal del Codespace, `curl localhost:8000/health` también funciona sin
+tocar nada de esto.
+
 ---
 
 
