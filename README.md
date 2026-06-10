@@ -95,7 +95,7 @@ en Codespaces se usan **exactamente los mismos comandos** que en local.
 
 1. Abrí la pestaña **PORTS / PUERTOS** del Codespace.
 2. Buscá el puerto **8000** (lo expone la API). Su *Forwarded Address* es algo como:
-   `https://TU-CODESPACE-8000.app.github.dev`
+   `https://TU-CODESPACE-8000.app.github.dev`. Este link se puede encontrar en la solapa de puertos que abre VSCODE cuando empezamos el codespace. 
 3. Abrila en el navegador → **Swagger** en `/docs`, *health check* en `/health`.
    Los endpoints cuelgan de la **raíz** (no hay prefijo `/api`): `/pacientes/activos`,
    `/consultas/seguimiento`, etc.
