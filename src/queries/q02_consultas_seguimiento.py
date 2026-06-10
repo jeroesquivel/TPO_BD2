@@ -5,7 +5,6 @@ veterinario asignado y costo.
 from __future__ import annotations
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def consultas_en_seguimiento() -> list[dict]:
@@ -32,8 +31,3 @@ def consultas_en_seguimiento() -> list[dict]:
         {"$sort": {"fecha": 1}},
     ]
     return list(db.consultas.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 2 - Consultas en Seguimiento",
-                 consultas_en_seguimiento())

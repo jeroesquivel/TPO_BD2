@@ -8,7 +8,6 @@ from __future__ import annotations
 from pymongo import ReturnDocument
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 class StockError(ValueError):
@@ -18,16 +17,6 @@ class StockError(ValueError):
 def decrementar_stock(id_producto: str, cantidad: int) -> dict:
     """Decrementa `cantidad` unidades de un producto de forma atómica y segura.
 
-    Args:
-        id_producto: identificador del producto (p. ej. "PRD001").
-        cantidad: unidades a descontar (entero positivo).
-
-    Returns:
-        Dict con el estado antes/después del decremento.
-
-    Raises:
-        StockError: si el producto no existe, la cantidad es inválida o no hay
-            stock suficiente.
     """
     if cantidad <= 0:
         raise StockError("La cantidad a decrementar debe ser positiva")
@@ -54,12 +43,3 @@ def decrementar_stock(id_producto: str, cantidad: int) -> dict:
         "decremento": cantidad,
         "unidades_despues": doc["unidades"],
     }
-
-
-if __name__ == "__main__":  # pragma: no cover
-    resultado = decrementar_stock("PRD001", 5)
-    print_result("Consulta 15 - Decremento de stock", [resultado])
-    try:
-        decrementar_stock("PRD006", 10_000)
-    except StockError as exc:
-        print(f"\nValidación OK -> {exc}")

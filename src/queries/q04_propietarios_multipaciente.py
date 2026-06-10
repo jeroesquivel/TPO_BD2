@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def propietarios_con_varios_pacientes() -> list[dict]:
@@ -49,8 +48,3 @@ def propietarios_con_varios_pacientes() -> list[dict]:
         {"$sort": {"cantidad_pacientes": -1, "id_propietario": 1}},
     ]
     return list(db.pacientes.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 4 - Propietarios con más de un paciente",
-                 propietarios_con_varios_pacientes())

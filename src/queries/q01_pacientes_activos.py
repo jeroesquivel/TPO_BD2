@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 # OBS: Si hay pacientes activos sin propietario, no se incluyen en el resultado. Se asume que
@@ -42,8 +41,3 @@ def pacientes_activos_con_propietario() -> list[dict]:
         {"$sort": {"id_paciente": 1}},
     ]
     return list(db.pacientes.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 1 - Pacientes activos con propietario",
-                 pacientes_activos_con_propietario())

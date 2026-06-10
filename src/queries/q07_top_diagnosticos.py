@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def top_diagnosticos(limite: int = 5) -> list[dict]:
@@ -19,7 +18,3 @@ def top_diagnosticos(limite: int = 5) -> list[dict]:
         {"$project": {"_id": 0, "diagnostico": "$_id", "frecuencia": 1}},
     ]
     return list(db.consultas.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 7 - Top 5 diagnósticos", top_diagnosticos())

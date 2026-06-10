@@ -8,7 +8,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 class ValidacionError(ValueError):
@@ -63,13 +62,3 @@ def registrar_consulta(
     db.consultas.insert_one(doc)
     doc.pop("_id", None)
     return doc
-
-
-if __name__ == "__main__":  # pragma: no cover
-    nueva = registrar_consulta(
-        "P001", "V001", "Control de rutina", "Sano", 4300, estado="Cerrada")
-    print_result("Consulta 14 - Nueva consulta registrada", [nueva])
-    try:
-        registrar_consulta("P999", "V001", "x", "y", 100)
-    except ValidacionError as exc:
-        print(f"\nValidación OK -> {exc}")

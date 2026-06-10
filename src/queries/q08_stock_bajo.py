@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def stock_bajo(umbral: int = 50) -> list[dict]:
@@ -16,7 +15,3 @@ def stock_bajo(umbral: int = 50) -> list[dict]:
          "unidades": 1, "precio_unit": 1, "proveedor": 1},
     ).sort("unidades", 1)
     return list(cursor)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 8 - Stock con menos de 50 unidades", stock_bajo())

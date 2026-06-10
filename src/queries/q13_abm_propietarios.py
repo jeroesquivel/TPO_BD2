@@ -7,7 +7,6 @@ from __future__ import annotations
 from pymongo import ReturnDocument
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 class PropietarioDuplicadoError(ValueError):
@@ -58,18 +57,3 @@ def obtener_propietario(id_propietario: str) -> dict | None:
     """Lectura auxiliar para mostrar el estado antes/después."""
     return get_db().propietarios.find_one(
         {"id_propietario": id_propietario}, {"_id": 0})
-
-
-if __name__ == "__main__":  # pragma: no cover
-    nuevo = {
-        "id_propietario": "C999", "nombre": "Demo", "apellido": "Prueba",
-        "dni": "99999999", "email": "demo@vetsalud.com", "telefono": "1100000000",
-        "ciudad": "CABA", "provincia": "Buenos Aires",
-    }
-    alta_propietario(nuevo)
-    print_result("Consulta 13 - Alta", [obtener_propietario("C999")])
-    modificar_propietario("C999", {"email": "demo.nuevo@vetsalud.com",
-                                   "telefono": "1122223333"})
-    print_result("Consulta 13 - Modificación", [obtener_propietario("C999")])
-    baja_logica_propietario("C999")
-    print_result("Consulta 13 - Baja lógica", [obtener_propietario("C999")])

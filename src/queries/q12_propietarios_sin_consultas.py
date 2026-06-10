@@ -7,7 +7,6 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def propietarios_sin_consultas_ultimo_anio(referencia: datetime | None = None) -> list[dict]:
@@ -45,8 +44,3 @@ def propietarios_sin_consultas_ultimo_anio(referencia: datetime | None = None) -
         {"$sort": {"id_propietario": 1}},
     ]
     return list(db.propietarios.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 12 - Propietarios sin consultas en el último año",
-                 propietarios_sin_consultas_ultimo_anio())

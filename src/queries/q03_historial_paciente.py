@@ -1,11 +1,9 @@
-"""Consulta 3 — Historial completo de un paciente: consultas y vacunaciones
-ordenadas por fecha (enunciado §4 #3).
+"""Consulta 3 — Historial completo de un paciente: consultas y vacunaciones ordenadas por fecha.
 """
 
 from __future__ import annotations
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 _PROJ_CONSULTA = {
@@ -64,17 +62,10 @@ def _historial(id_paciente: str, incluir_cirugias: bool) -> list[dict]:
 
 
 def historial_paciente(id_paciente: str) -> list[dict]:
-    """Línea de tiempo del paciente: consultas + vacunaciones (enunciado §4 #3)."""
+    """Línea de tiempo del paciente: consultas + vacunaciones."""
     return _historial(id_paciente, incluir_cirugias=False)
 
 
 def historial_completo(id_paciente: str) -> list[dict]:
-    """Variante extendida: historial + cirugías (extra, fuera del enunciado §4 #3)."""
+    """Variante extendida: historial + cirugías."""
     return _historial(id_paciente, incluir_cirugias=True)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 3 - Historial del paciente P001",
-                 historial_paciente("P001"))
-    print_result("Consulta 3 (extendida) - Historial completo de P001",
-                 historial_completo("P001"))

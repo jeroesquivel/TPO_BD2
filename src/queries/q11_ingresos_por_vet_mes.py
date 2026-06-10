@@ -8,7 +8,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 # Nombre de la vista de MongoDB que respalda esta consulta (la crea el loader).
 VISTA = "vista_ingresos_por_vet"
@@ -67,8 +66,3 @@ def ingresos_por_vet_mes_actual(referencia: datetime | None = None) -> list[dict
     inicio, fin = _rango_mes_actual(referencia)
     pipeline = [{"$match": {"fecha": {"$gte": inicio, "$lt": fin}}}, *_ETAPAS_AGREGACION]
     return list(db.consultas.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 11 - Ingresos por veterinario (mes actual)",
-                 ingresos_por_vet_mes_actual())

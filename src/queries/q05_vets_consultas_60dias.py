@@ -9,7 +9,6 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def vets_activos_consultas_ultimos_60_dias(referencia: datetime | None = None) -> list[dict]:
@@ -47,8 +46,3 @@ def vets_activos_consultas_ultimos_60_dias(referencia: datetime | None = None) -
         {"$sort": {"consultas_60d": -1, "id_vet": 1}},
     ]
     return list(db.veterinarios.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 5 - Vets activos y consultas (últimos 60 días)",
-                 vets_activos_consultas_ultimos_60_dias())

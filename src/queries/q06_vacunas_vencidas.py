@@ -7,7 +7,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def vacunas_vencidas(referencia: datetime | None = None) -> list[dict]:
@@ -48,8 +47,3 @@ def vacunas_vencidas(referencia: datetime | None = None) -> list[dict]:
         {"$sort": {"id_paciente": 1}},
     ]
     return list(db.vacunaciones.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 6 - Pacientes con vacunas vencidas",
-                 vacunas_vencidas())

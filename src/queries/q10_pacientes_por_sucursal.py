@@ -5,7 +5,6 @@ veterinario que los atendió).
 from __future__ import annotations
 
 from src.db.mongo import get_db
-from src.queries._util import print_result
 
 
 def pacientes_por_sucursal(sucursal: str) -> list[dict]:
@@ -44,8 +43,3 @@ def pacientes_por_sucursal(sucursal: str) -> list[dict]:
         {"$sort": {"id_paciente": 1}},
     ]
     return list(db.consultas.aggregate(pipeline))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print_result("Consulta 10 - Pacientes de la sucursal Palermo",
-                 pacientes_por_sucursal("Palermo"))
