@@ -9,7 +9,7 @@ distintos:
 - **MongoDB** (documental) — **fuente de verdad** de todo el dominio: pacientes,
   propietarios, veterinarios, consultas, vacunaciones, cirugías y **stock
   farmacéutico** (durable, con contadores atómicos vía `$inc`).
-- **Redis** (clave-valor en memoria) — **capa de caché** (*cache-aside*) sobre las
+- **Redis** (clave-valor en memoria) — **capa de caché** sobre las
   consultas de lectura de la API, con invalidación en cada escritura y TTL.
 
 El sistema resuelve **15 consultas/servicios** (12 de lectura + 3 servicios que
@@ -22,33 +22,27 @@ mutan datos), expuestos como **API REST** (FastAPI) con separación de capas
 
 - [Docker](https://www.docker.com/) y Docker Compose.
 
-Nada más: todo (API, ETL y tests) corre dentro de contenedores, así que no hace
-falta instalar Python ni dependencias en tu máquina.
+
 
 ---
 
 ## Cómo correr el proyecto
 
-El proyecto se corre **íntegramente con Docker Compose**: no necesitás instalar
-Python ni las dependencias en tu máquina (sólo Docker). El `docker-compose.yml`
-define cuatro servicios: `mongo` y `redis` (infra
-**persistente**), `app` (la API) y dos servicios *a demanda* protegidos por
-*profiles* — `etl` (carga/recarga de datos) y `tests`. `app` espera a que Mongo y
-Redis estén *healthy* antes de arrancar y **no** carga datos por sí solo: usa lo que
-haya en el volumen.
 
 ```bash
 # 1) Primera vez: levantar infra + API y cargar los datos
 docker compose up -d --build      # mongo + redis + app  →  http://localhost:8000
-docker compose run --rm etl       # ETL: carga limpia + seed (drop=True)
+docker compose run --rm etl       # Carga de los datos de los CSVs y los extras que agregamos 
 
-# 2) Veces siguientes: reusar el estado ya cargado (no hace falta el ETL)
-docker compose up -d              # los datos persisten en los volúmenes
+# 2) Veces siguientes: reusar el estado ya cargado 
+docker compose up -d             
 
-# 3) Recargar/resetear los datos cuando quieras
+# 3) Resetear los datos al estado original
 docker compose run --rm etl
 ```
 
+- **Swagger UI:** http://localhost:8000/docs (rutas agrupadas por *tag*).
+- **Health check:** http://localhost:8000/health
 
 ---
 
@@ -59,23 +53,19 @@ docker compose down            # detiene los contenedores
 docker compose down -v         # además borra los volúmenes (datos persistidos)
 ```
 
-
-- **Swagger UI:** http://localhost:8000/docs (rutas agrupadas por *tag*).
-- **Health check:** http://localhost:8000/health
-
 **Persistencia del estado:** los datos viven en volúmenes nombrados (`mongo_data`,
 `redis_data`). `docker compose down` **conserva** el estado; sólo
 `docker compose down -v` borra los volúmenes.
 
 ### En GitHub Codespaces
 
-El repo trae un *devcontainer* con **Docker adentro** (`docker-in-docker`), así que
+El repo trae un *devcontainer* con **Docker adentro**, así que
 en Codespaces se usan **exactamente los mismos comandos** que en local.
 
 1. En GitHub: **Code → Codespaces → Create codespace on `main`**.
 2. Esperá a que termine de crearse. **No hay que correr nada a mano:** el
    `postCreateCommand` ya buildea, levanta `mongo` + `redis` + `app` y **carga los
-   datos (ETL)**. Cuando termina, la API ya está corriendo **con datos**.
+   datos**. Cuando termina, la API ya está corriendo **con datos**.
    *(Si parás y reabrís el Codespace, el `postStartCommand` vuelve a levantar los
    servicios; los datos persisten en los volúmenes, el ETL no se re-corre.)*
 3. *(Opcional)* Los mismos comandos del README sirven para recargar, relevantar o
@@ -262,8 +252,7 @@ es sólo caché y se limpia entre pruebas.)
 │   │   ├── routers/                  # capa HTTP fina (pacientes, propietarios, consultas, stock)
 │   │   └── services/                 # caché + invalidación, llaman a las queries
 │   └── main.py                       # punto de entrada del ETL
-├── tests/                            # suite pytest (vía TestClient)
-├── informe/informe.md                # informe técnico (base para el PDF)
+├── tests/                            # 
 ├── docker-compose.yml                # mongo + redis + app + etl/tests (profiles)
 ├── Dockerfile                        # imagen de la API (uvicorn)
 ├── .dockerignore
@@ -300,7 +289,7 @@ lectura transversal a todas ellas.
 
 ## Caché e invalidación
 
-Redis funciona como caché *cache-aside* en la **capa de servicios**: las `q01..q15`
+Redis funciona como caché en la **capa de servicios**: las `q01..q15`
 quedan **puras** (sólo datos, sin acoplamiento a Redis) y los servicios envuelven
 las lecturas con `get_or_set_cache` y disparan `invalidate` en las escrituras.
 
