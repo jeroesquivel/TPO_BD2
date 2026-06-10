@@ -62,18 +62,6 @@ docker compose exec mongo mongosh vetsalud
 docker compose exec mongo mongosh vetsalud --eval 'db.pacientes.countDocuments()'
 ```
 
-Una vez adentro del shell (`vetsalud>`):
-
-```javascript
-show collections                          // pacientes, propietarios, consultas, vacunaciones, stock, ...
-db.pacientes.find().limit(5)              // primeros 5 documentos
-db.pacientes.findOne({ id_paciente: "P001" })
-db.stock.find({ unidades: { $lt: 50 } })  // stock bajo
-db.consultas.countDocuments()
-db.getCollectionNames()                   // incluye la vista vista_ingresos_por_vet
-exit                                       // salir
-```
-
 ### Redis (`redis-cli`)
 
 ```bash
@@ -83,6 +71,23 @@ docker compose exec redis redis-cli
 # O ejecutar un solo comando
 docker compose exec redis redis-cli KEYS '*'
 ```
+
+Comandos útiles para ver la caché (las claves las escriben los servicios):
+
+```bash
+KEYS *              # listar todas las claves cacheadas
+GET <clave>         # ver el valor (JSON) de una consulta cacheada
+TTL <clave>         # segundos que le quedan de vida (TTL)
+DBSIZE              # cantidad de claves
+FLUSHALL            # vaciar la caché (forzar recálculo en la próxima lectura)
+exit                # salir
+```
+
+> Tip: corré una lectura (ej. `curl localhost:8000/pacientes/activos`) y después
+> `KEYS *` para ver cómo aparece la clave en Redis; una escritura sobre los
+> endpoints que mutan la invalida (ver la tabla de *Caché e invalidación*).
+
+---
 
 ## Detener la infraestructura
 

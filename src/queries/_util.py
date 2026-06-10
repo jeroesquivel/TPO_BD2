@@ -7,8 +7,6 @@ import sys
 from datetime import datetime
 from typing import Iterable
 
-# En consolas Windows (cp1252) los acentos se ven como "�"; forzamos UTF-8 para
-# que la salida de ejemplo sea legible. Los datos en la base ya están en UTF-8.
 try:  # pragma: no cover - depende de la plataforma
     sys.stdout.reconfigure(encoding="utf-8")
 except (AttributeError, ValueError):
