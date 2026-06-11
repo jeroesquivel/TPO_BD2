@@ -15,48 +15,42 @@ _PROJ_CONSULTA = {
     "id_vet": "$id_vet",
 }
 
-_UNION_VACUNACIONES = {
-    "coll": "vacunaciones",
-    "pipeline": [
-        {"$project": {
-            "_id": 0,
-            "tipo": {"$literal": "Vacunación"},
-            "fecha": "$fecha_aplicacion",
-            "detalle": "$nombre_vacuna",
-            "diagnostico": {"$literal": None},
-            "id_vet": "$id_vet",
-        }},
-    ],
+_PROJ_VACUNACION = {
+    "_id": 0,
+    "tipo": {"$literal": "Vacunación"},
+    "fecha": "$fecha_aplicacion",
+    "detalle": "$nombre_vacuna",
+    "diagnostico": {"$literal": None},
+    "id_vet": "$id_vet",
 }
 
-_UNION_CIRUGIAS = {
-    "coll": "cirugias",
-    "pipeline": [
-        {"$project": {
-            "_id": 0,
-            "tipo": {"$literal": "Cirugía"},
-            "fecha": "$fecha",
-            "detalle": "$tipo",
-            "diagnostico": "$resultado",
-            "id_vet": "$id_vet",
-        }},
-    ],
+_PROJ_CIRUGIA = {
+    "_id": 0,
+    "tipo": {"$literal": "Cirugía"},
+    "fecha": "$fecha",
+    "detalle": "$tipo",
+    "diagnostico": "$resultado",
+    "id_vet": "$id_vet",
 }
+
+
+def _union(coll: str, id_paciente: str, proyeccion: dict) -> dict:
+    """Arma un `$unionWith` que filtra la colección por paciente y la normaliza."""
+    return {"coll": coll, "pipeline": [
+        {"$match": {"id_paciente": id_paciente}},
+        {"$project": proyeccion},
+    ]}
 
 
 def _historial(id_paciente: str, incluir_cirugias: bool) -> list[dict]:
     db = get_db()
-    union_vac = {**_UNION_VACUNACIONES}
-    union_vac["pipeline"] = [{"$match": {"id_paciente": id_paciente}}, *union_vac["pipeline"]]
     pipeline = [
         {"$match": {"id_paciente": id_paciente}},
         {"$project": _PROJ_CONSULTA},
-        {"$unionWith": union_vac},
+        {"$unionWith": _union("vacunaciones", id_paciente, _PROJ_VACUNACION)},
     ]
     if incluir_cirugias:
-        union_cir = {**_UNION_CIRUGIAS}
-        union_cir["pipeline"] = [{"$match": {"id_paciente": id_paciente}}, *union_cir["pipeline"]]
-        pipeline.append({"$unionWith": union_cir})
+        pipeline.append({"$unionWith": _union("cirugias", id_paciente, _PROJ_CIRUGIA)})
     pipeline.append({"$sort": {"fecha": 1}})
     return list(db.consultas.aggregate(pipeline))
 
