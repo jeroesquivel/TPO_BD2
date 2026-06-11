@@ -3,7 +3,10 @@ from fastapi.responses import JSONResponse
 
 from src.api.routers import consultas, pacientes, propietarios, stock
 from src.queries.q13_abm_propietarios import PropietarioDuplicadoError
-from src.queries.q14_registrar_consulta import ValidacionError
+from src.queries.q14_registrar_consulta import (
+    ConsultaDuplicadaError,
+    ValidacionError,
+)
 from src.queries.q15_decrementar_stock import StockError
 
 app = FastAPI(title="VetSalud API")
@@ -22,6 +25,11 @@ async def _duplicado_handler(_, exc: PropietarioDuplicadoError):
 @app.exception_handler(ValidacionError)
 async def _validacion_handler(_, exc: ValidacionError):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(ConsultaDuplicadaError)
+async def _consulta_duplicada_handler(_, exc: ConsultaDuplicadaError):
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
 
 
 @app.get("/health", tags=["health"])

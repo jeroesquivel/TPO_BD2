@@ -85,6 +85,7 @@ def test_invalidacion_post_consulta_limpia_claves_afectadas(client, redis):
 
     # registrar nueva consulta (P001 activo, V001 activo)
     r = client.post("/consultas", json={
+        "id_consulta": "CON910",
         "id_paciente": "P001", "id_vet": "V001",
         "fecha": "2026-06-08", "motivo": "Control test",
         "diagnostico": "Sano", "costo": 1500, "estado": "Cerrada",
@@ -115,6 +116,7 @@ def test_post_consulta_no_invalida_q08(client, redis):
     assert any(k.startswith("cache:q08") for k in cache_keys(redis))
 
     client.post("/consultas", json={
+        "id_consulta": "CON911",
         "id_paciente": "P001", "id_vet": "V001",
         "fecha": "2026-06-08", "motivo": "Test",
         "diagnostico": "Sano", "costo": 100, "estado": "Cerrada",
@@ -132,6 +134,7 @@ def test_post_consulta_no_invalida_q01(client, redis):
     assert any(k.startswith("cache:q01") for k in claves_antes)
 
     client.post("/consultas", json={
+        "id_consulta": "CON912",
         "id_paciente": "P001", "id_vet": "V001",
         "fecha": "2026-06-08", "motivo": "Test",
         "diagnostico": "Sano", "costo": 100, "estado": "Cerrada",
@@ -153,10 +156,11 @@ def test_escritura_no_falla_si_redis_cae(client, monkeypatch):
     # request (si lo hiciera, un retry duplicaría la consulta).
     monkeypatch.setattr("src.db.cache.get_redis", _redis_caido)
     r = client.post("/consultas", json={
+        "id_consulta": "CON913",
         "id_paciente": "P001", "id_vet": "V001",
         "fecha": "2026-06-08", "motivo": "Test redis caído",
         "diagnostico": "Sano", "costo": 1000, "estado": "Cerrada",
     })
     assert r.status_code == 200
-    assert r.json()["id_consulta"].startswith("CON")
+    assert r.json()["id_consulta"] == "CON913"
     # la consulta insertada la limpia el fixture autouse `restaura_db`

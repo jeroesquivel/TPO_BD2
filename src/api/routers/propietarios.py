@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from src.api.models import PropietarioIn, PropietarioUpdate
 from src.api.services import propietarios_service
@@ -23,9 +23,15 @@ def c13(p: PropietarioIn):
 
 @router.put("/{id_p}")
 def m13(id_p: str, cambios: PropietarioUpdate):
-    return propietarios_service.modificar_propietario(id_p, cambios.model_dump(exclude_none=True))
+    out = propietarios_service.modificar_propietario(id_p, cambios.model_dump(exclude_none=True))
+    if out is None:
+        raise HTTPException(status_code=404, detail=f"El propietario {id_p} no existe")
+    return out
 
 
 @router.delete("/{id_p}")
 def b13(id_p: str):
-    return propietarios_service.baja_propietario(id_p)
+    out = propietarios_service.baja_propietario(id_p)
+    if out is None:
+        raise HTTPException(status_code=404, detail=f"El propietario {id_p} no existe")
+    return out

@@ -33,5 +33,5 @@ def r11():
 
 @router.post("")
 def c14(c: ConsultaIn):
-    # exclude_none deja que q14 aplique sus defaults (fecha=now, id autogenerado)
+    # exclude_none deja que q14 aplique su default de fecha=now; id_consulta es obligatorio
     return consultas_service.registrar_consulta(c.model_dump(exclude_none=True))

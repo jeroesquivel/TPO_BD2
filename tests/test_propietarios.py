@@ -94,3 +94,12 @@ def test_q13_alta_incompleta_da_422(client):
     # faltan campos requeridos → validación Pydantic
     r = client.post("/propietarios", json={"id_propietario": "CINCOMPLETO"})
     assert r.status_code == 422
+
+def test_q13_modificar_inexistente_da_404(client):
+    # PUT sobre un id que no existe no debe devolver 200 null, sino 404
+    r = client.put("/propietarios/CNOEXISTE", json={"ciudad": "Córdoba"})
+    assert r.status_code == 404
+
+def test_q13_baja_inexistente_da_404(client):
+    r = client.delete("/propietarios/CNOEXISTE")
+    assert r.status_code == 404

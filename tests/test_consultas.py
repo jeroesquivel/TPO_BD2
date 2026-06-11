@@ -146,6 +146,7 @@ def test_q11_ingresos_correctos(client):
 
 def test_q14_registrar_consulta_valida(client):
     payload = {
+        "id_consulta": "CON900",
         "id_paciente": "P001",
         "id_vet": "V001",
         "fecha": "2026-06-08",
@@ -157,12 +158,31 @@ def test_q14_registrar_consulta_valida(client):
     r = client.post("/consultas", json=payload)
     assert r.status_code == 200
     body = r.json()
-    assert "id_consulta" in body
-    assert body["id_consulta"].startswith("CON")
+    assert body["id_consulta"] == "CON900"
     # la consulta insertada la limpia el fixture autouse `restaura_db`
+
+def test_q14_sin_id_da_422(client):
+    # id_consulta es obligatorio: crear sin él debe rechazarse (no se autogenera)
+    r = client.post("/consultas", json={
+        "id_paciente": "P001", "id_vet": "V001",
+        "fecha": "2026-06-08", "motivo": "Test",
+        "diagnostico": "Sano", "costo": 1000, "estado": "Cerrada",
+    })
+    assert r.status_code == 422
+
+def test_q14_id_duplicado_da_409(client):
+    # CON001 ya existe en el seed → conflicto
+    r = client.post("/consultas", json={
+        "id_consulta": "CON001",
+        "id_paciente": "P001", "id_vet": "V001",
+        "fecha": "2026-06-08", "motivo": "Test",
+        "diagnostico": "Sano", "costo": 1000, "estado": "Cerrada",
+    })
+    assert r.status_code == 409
 
 def test_q14_paciente_inexistente_da_404(client):
     r = client.post("/consultas", json={
+        "id_consulta": "CON901",
         "id_paciente": "PXXX", "id_vet": "V001",
         "fecha": "2026-06-08", "motivo": "Test",
         "diagnostico": "Sano", "costo": 1000, "estado": "Cerrada",
@@ -171,6 +191,7 @@ def test_q14_paciente_inexistente_da_404(client):
 
 def test_q14_vet_inexistente_da_404(client):
     r = client.post("/consultas", json={
+        "id_consulta": "CON902",
         "id_paciente": "P001", "id_vet": "VXXX",
         "fecha": "2026-06-08", "motivo": "Test",
         "diagnostico": "Sano", "costo": 1000, "estado": "Cerrada",

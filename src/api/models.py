@@ -16,7 +16,7 @@ class ConsultaIn(BaseModel):
     costo: float = Field(ge=0)
     estado: str = "Cerrada"
     fecha: datetime | None = None          # Pydantic parsea "2026-06-08" -> datetime
-    id_consulta: str | None = None
+    id_consulta: str                       # obligatorio: lo provee quien llama (→ 422 si falta)
 
 
 class PropietarioIn(BaseModel):

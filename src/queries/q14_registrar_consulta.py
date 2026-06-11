@@ -14,11 +14,8 @@ class ValidacionError(ValueError):
     """Error de validación al registrar una consulta (paciente/vet inexistente)."""
 
 
-def _siguiente_id_consulta(db) -> str:
-    """Genera el próximo id_consulta correlativo (CONNNN) usando el máximo numérico."""
-    ids = db.consultas.distinct("id_consulta")
-    nums = [int(i[3:]) for i in ids if i.startswith("CON") and i[3:].isdigit()]
-    return f"CON{(max(nums) + 1) if nums else 1:03d}"
+class ConsultaDuplicadaError(ValueError):
+    """Se intentó registrar una consulta con un `id_consulta` que ya existe."""
 
 
 def registrar_consulta(
@@ -34,9 +31,12 @@ def registrar_consulta(
     """Registra una nueva consulta validando que existan paciente y veterinario.
 
     Raises:
+        ConsultaDuplicadaError: si el `id_consulta` ya existe.
         ValidacionError: si el paciente o el veterinario no existen.
     """
     db = get_db()
+    if db.consultas.find_one({"id_consulta": id_consulta}, {"_id": 1}):
+        raise ConsultaDuplicadaError(f"La consulta {id_consulta} ya existe")
     pac_doc = db.pacientes.find_one({"id_paciente": id_paciente}, {"_id": 0})
     if not pac_doc:
         raise ValidacionError(f"El paciente {id_paciente} no existe")
@@ -45,7 +45,7 @@ def registrar_consulta(
         raise ValidacionError(f"El veterinario {id_vet} no existe")
 
     doc = {
-        "id_consulta":     id_consulta or _siguiente_id_consulta(db),
+        "id_consulta":     id_consulta,
         "id_paciente":     id_paciente,
         "id_vet":          id_vet,
         "fecha":           fecha or datetime.now(),
