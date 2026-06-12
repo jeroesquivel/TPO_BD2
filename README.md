@@ -100,7 +100,7 @@ docker compose down -v         # además borra los volúmenes (datos persistidos
 `redis_data`). `docker compose down` **conserva** el estado; sólo
 `docker compose down -v` borra los volúmenes.
 
-### En GitHub Codespaces
+## Correr el proyecto en GitHub Codespaces
 
 El repo trae un *devcontainer* con **Docker adentro**, así que
 en Codespaces se usan **exactamente los mismos comandos** que en local.
